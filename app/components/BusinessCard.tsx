@@ -3,6 +3,7 @@ import {
   XIcon,
   DiscordIcon,
   DotsIcon,
+  MediumIcon,
   GitHubIcon,
   CopyIcon,
   TelegramIcon,
@@ -12,7 +13,7 @@ import {
 } from "./icons";
 
 export type BizSocial = {
-  kind: "globe" | "x" | "discord" | "dots" | "github" | "telegram";
+  kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram";
   href?: string;
 };
 
@@ -21,6 +22,7 @@ const SOCIAL_ICONS: Record<BizSocial["kind"], (s: number) => JSX.Element> = {
   x: (s) => <XIcon size={s} />,
   discord: (s) => <DiscordIcon size={s} />,
   dots: (s) => <DotsIcon size={s} />,
+  medium: (s) => <MediumIcon size={s} />,
   github: (s) => <GitHubIcon size={s} />,
   telegram: (s) => <TelegramIcon size={s} />,
 };

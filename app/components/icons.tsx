@@ -67,6 +67,15 @@ export function DotsIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+export function MediumIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="8.5" cy="12" r="6" />
+      <ellipse cx="19" cy="12" rx="3" ry="5.6" />
+    </svg>
+  );
+}
+
 export function GitHubIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">

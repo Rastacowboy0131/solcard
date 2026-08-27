@@ -171,7 +171,7 @@ export default function Home() {
               { kind: "globe" },
               { kind: "x" },
               { kind: "discord" },
-              { kind: "dots" },
+              { kind: "medium" },
               { kind: "github" },
             ]}
             address="7XK3mockmockmockQ9ZF"
