@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import dynamic from "next/dynamic";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   SolCard,
@@ -12,14 +11,17 @@ import {
 } from "../lib/card";
 import { compressAvatar } from "../lib/compress";
 import { mintCard } from "../lib/inscribe";
-
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (m) => m.WalletMultiButton
-    ),
-  { ssr: false }
-);
+import { SiteHeader } from "./components/SiteHeader";
+import { MarqueeBar } from "./components/MarqueeBar";
+import { BusinessCard } from "./components/BusinessCard";
+import {
+  GlobeIcon,
+  LockIcon,
+  BoltIcon,
+  SparkleIcon,
+  ArrowRightIcon,
+  TickMarks,
+} from "./components/icons";
 
 export default function Home() {
   const { wallet, publicKey, connected } = useWallet();
@@ -115,102 +117,163 @@ export default function Home() {
   }
 
   return (
-    <main className="container">
-      <div className="hero">
-        <h1>
-          Sol<span>Card</span>
-        </h1>
-        <p>Your business card, inscribed on Solana. Forever. (devnet v1)</p>
-      </div>
+    <>
+      <SiteHeader active="home" />
 
-      <div className="panel">
-        <div className="row" style={{ justifyContent: "space-between" }}>
-          <strong>Build your card</strong>
-          <WalletMultiButton />
-        </div>
+      <main>
+        <section className="wrap hero-grid">
+          <div>
+            <h1 className="hero-h1 display">
+              Your Name.
+              <br />
+              On Chain.
+              <br />
+              <span className="tickline">
+                <span className="hero-ticks"><TickMarks /></span>
+                Forever.
+              </span>
+            </h1>
+            <div className="hero-badge">On-Chain Business Cards on Solana.</div>
+            <div>
+              <a href="#builder" className="brut-btn hero-cta">
+                <SparkleIcon size={30} /> Mint 0.15 SOL <ArrowRightIcon size={34} />
+              </a>
+            </div>
+            <div className="feature-row">
+              <div className="feature">
+                <div className="feature-icon"><GlobeIcon size={28} /></div>
+                <div>
+                  <h3>Decentralized</h3>
+                  <p>No central servers.</p>
+                </div>
+              </div>
+              <div className="feature">
+                <div className="feature-icon"><LockIcon size={28} /></div>
+                <div>
+                  <h3>Permanent</h3>
+                  <p>Can&apos;t be deleted.</p>
+                </div>
+              </div>
+              <div className="feature">
+                <div className="feature-icon"><BoltIcon size={28} /></div>
+                <div>
+                  <h3>Fast</h3>
+                  <p>Built on Solana.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="field" style={{ marginTop: "1rem" }}>
-          <label>Profile picture (compressed to ~{MAX_AVATAR_BYTES / 1000}kb webp)</label>
-          <div className="row">
-            {avatar && (
-              <img src={avatar.preview} className="avatar-preview" alt="" />
+          <BusinessCard
+            handle="degenkev"
+            bio="GM. degen, designer, and on-chain explorer."
+            socials={[
+              { kind: "globe" },
+              { kind: "x" },
+              { kind: "discord" },
+              { kind: "dots" },
+              { kind: "github" },
+            ]}
+            address="7XK3mockmockmockQ9ZF"
+            demoAvatar
+          />
+        </section>
+
+        <MarqueeBar />
+
+        <section className="wrap" id="builder">
+          <h2 className="section-title">Build Your Card</h2>
+          <p className="section-sub">
+            Inscribed on Solana devnet. Forever. (v1)
+          </p>
+
+          <div className="panel">
+            <div className="field">
+              <label>Profile picture (compressed to ~{MAX_AVATAR_BYTES / 1000}kb webp)</label>
+              <div className="row">
+                {avatar && (
+                  <img src={avatar.preview} className="avatar-preview" alt="" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => onFile(e.target.files?.[0])}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Handle (your card URL: solcard/&lt;handle&gt;)</label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value.toLowerCase())}
+                placeholder="satoshi"
+                maxLength={32}
+              />
+              {name && !NAME_RE.test(name) && (
+                <div className="error">2-32 chars: a-z, 0-9, -, _</div>
+              )}
+            </div>
+
+            <div className="field">
+              <label>Display name</label>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Satoshi Nakamoto"
+                maxLength={64}
+              />
+            </div>
+
+            <div className="field">
+              <label>Bio</label>
+              <textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="What you do, in a few lines"
+                maxLength={500}
+              />
+            </div>
+
+            <div className="field">
+              <label>X / Twitter</label>
+              <input value={x} onChange={(e) => setX(e.target.value)} placeholder="https://x.com/you" />
+            </div>
+            <div className="field">
+              <label>Telegram</label>
+              <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="https://t.me/you" />
+            </div>
+            <div className="field">
+              <label>Website</label>
+              <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="https://you.xyz" />
+            </div>
+            <div className="field">
+              <label>Wallets to display (comma separated, max 5)</label>
+              <input value={wallets} onChange={(e) => setWallets(e.target.value)} placeholder="addr1, addr2" />
+            </div>
+
+            <div className="muted" style={{ marginBottom: "1rem" }}>
+              Payload: {totalSize.toLocaleString()} / {MAX_TOTAL_BYTES.toLocaleString()} bytes.
+              Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
+            </div>
+
+            <button className="brut-btn" onClick={onMint} disabled={minting || !connected}>
+              {minting ? "Minting..." : "✦ Mint card on devnet →"}
+            </button>
+
+            {status && <div className="muted" style={{ marginTop: "0.5rem" }}>{status}</div>}
+            {error && <div className="error">{error}</div>}
+            {result && (
+              <div className="success">
+                Minted! Mint: {result.mint}. View your card at{" "}
+                <a href={`/${result.name}`}>/{result.name}</a>
+              </div>
             )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
           </div>
-        </div>
+        </section>
+      </main>
 
-        <div className="field">
-          <label>Handle (your card URL: solcard/&lt;handle&gt;)</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value.toLowerCase())}
-            placeholder="satoshi"
-            maxLength={32}
-          />
-          {name && !NAME_RE.test(name) && (
-            <div className="error">2-32 chars: a-z, 0-9, -, _</div>
-          )}
-        </div>
-
-        <div className="field">
-          <label>Display name</label>
-          <input
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Satoshi Nakamoto"
-            maxLength={64}
-          />
-        </div>
-
-        <div className="field">
-          <label>Bio</label>
-          <textarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="What you do, in a few lines"
-            maxLength={500}
-          />
-        </div>
-
-        <div className="field">
-          <label>X / Twitter</label>
-          <input value={x} onChange={(e) => setX(e.target.value)} placeholder="https://x.com/you" />
-        </div>
-        <div className="field">
-          <label>Telegram</label>
-          <input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="https://t.me/you" />
-        </div>
-        <div className="field">
-          <label>Website</label>
-          <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="https://you.xyz" />
-        </div>
-        <div className="field">
-          <label>Wallets to display (comma separated, max 5)</label>
-          <input value={wallets} onChange={(e) => setWallets(e.target.value)} placeholder="addr1, addr2" />
-        </div>
-
-        <div className="muted" style={{ marginBottom: "1rem" }}>
-          Payload: {totalSize.toLocaleString()} / {MAX_TOTAL_BYTES.toLocaleString()} bytes.
-          Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
-        </div>
-
-        <button className="btn" onClick={onMint} disabled={minting || !connected}>
-          {minting ? "Minting..." : "Mint card on devnet"}
-        </button>
-
-        {status && <div className="muted" style={{ marginTop: "0.5rem" }}>{status}</div>}
-        {error && <div className="error">{error}</div>}
-        {result && (
-          <div className="success">
-            Minted! Mint: {result.mint}. View your card at{" "}
-            <a href={`/${result.name}`}>/{result.name}</a>
-          </div>
-        )}
-      </div>
-    </main>
+      <MarqueeBar />
+    </>
   );
 }
