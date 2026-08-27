@@ -1,0 +1,108 @@
+:root {
+  --bg: #0b0e14;
+  --panel: #131826;
+  --border: #232a3d;
+  --text: #e8ecf5;
+  --muted: #8a93ab;
+  --accent: #8b5cf6;
+  --accent2: #14f195;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+a { color: var(--accent2); text-decoration: none; }
+
+.container { max-width: 760px; margin: 0 auto; padding: 2rem 1rem; }
+
+.hero { text-align: center; padding: 2rem 0 1rem; }
+.hero h1 { font-size: 2.6rem; margin: 0 0 0.5rem; }
+.hero h1 span { color: var(--accent2); }
+.hero p { color: var(--muted); margin: 0; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.field { margin-bottom: 1rem; }
+.field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.field input, .field textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+}
+.field textarea { resize: vertical; min-height: 80px; }
+
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.muted { color: var(--muted); font-size: 0.85rem; }
+.error { color: #f87171; font-size: 0.9rem; margin-top: 0.5rem; }
+.success { color: var(--accent2); font-size: 0.9rem; margin-top: 0.5rem; }
+
+.avatar-preview {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+}
+
+/* Card render page */
+.card-view {
+  max-width: 420px;
+  margin: 4rem auto;
+  background: linear-gradient(160deg, #161b2c, #0f1320);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+.card-view img.avatar {
+  width: 128px; height: 128px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+}
+.card-view h1 { margin: 1rem 0 0.25rem; font-size: 1.6rem; }
+.card-view .handle { color: var(--accent2); margin: 0 0 1rem; }
+.card-view .bio { color: var(--muted); white-space: pre-wrap; }
+.card-view .links { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.card-view .links a, .card-view .links .wallet {
+  display: block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+.chain-note { text-align: center; }
