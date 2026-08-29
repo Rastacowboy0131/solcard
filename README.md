@@ -1,4 +1,4 @@
-# SolCard
+# Chaincard
 
 On-chain business cards on Solana. Card data (json) and avatar (webp) are inscribed directly on-chain via Metaplex Inscriptions, attached to an NFT you own. No IPFS, no arweave, no offchain metadata: the card lives in Solana account data.
 

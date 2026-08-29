@@ -138,7 +138,7 @@ export function BusinessCard({
         <hr className="biz-divider" />
         <div className="biz-foot">
           <span className="biz-addr">
-            SOLCARD:{shortAddr.toUpperCase()} <CopyIcon />
+            CHAINCARD:{shortAddr.toUpperCase()} <CopyIcon />
           </span>
           <span className="biz-minted">Minted on Solana</span>
         </div>

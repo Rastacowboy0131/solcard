@@ -16,7 +16,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SolCard",
+  title: "Chaincard",
   description: "On-chain business cards on Solana, inscribed forever.",
 };
 

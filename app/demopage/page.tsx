@@ -5,13 +5,13 @@ import { DownloadCard } from "../components/DownloadCard";
 import { themeVars } from "../../lib/themes";
 
 export const metadata = {
-  title: "solcard.xyz/demopage | SolCard",
-  description: "Example SolCard page: what a minted on-chain business card looks like.",
+  title: "chaincard/demopage | Chaincard",
+  description: "Example Chaincard page: what a minted on-chain business card looks like.",
 };
 
 export default function DemoPage() {
   const socials: BizSocial[] = [
-    { kind: "globe", href: "https://solcard.xyz" },
+    { kind: "globe", href: "https://solcard-74l3.onrender.com" },
     { kind: "x", href: "https://x.com/solana" },
     { kind: "telegram", href: "https://t.me/solana" },
     { kind: "github" },
@@ -33,7 +33,7 @@ export default function DemoPage() {
         <DownloadCard handle="demopage" />
         <p className="chain-note">
           Demo preview, not a real inscription. Mint your own on the{" "}
-          <a href="/#builder">builder</a> and it lives at solcard.xyz/yourname,
+          <a href="/#builder">builder</a> and it lives at chaincard/yourname,
           read live from Solana.
         </p>
       </main>

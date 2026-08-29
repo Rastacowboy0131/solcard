@@ -72,7 +72,7 @@ export async function mintCard(
   const mint = generateSigner(umi);
   await (createV1(umi, {
     mint,
-    name: `SolCard: ${card.name}`,
+    name: `Chaincard: ${card.name}`,
     uri: "", // data lives in the inscription, not offchain json
     sellerFeeBasisPoints: percentAmount(0),
     tokenStandard: TokenStandard.NonFungible,
@@ -94,7 +94,7 @@ export async function mintCard(
   });
 
   // 2. Initialize inscription + fee transfer in one tx
-  onProgress("Initializing inscription (includes SolCard fee)...");
+  onProgress("Initializing inscription (includes Chaincard fee)...");
   let init = initializeFromMint(umi, {
     mintAccount: mint.publicKey,
   }) as TransactionBuilder;

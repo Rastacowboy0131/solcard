@@ -39,7 +39,7 @@ export function DownloadCard({ handle }: { handle: string }) {
       });
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = `solcard-${handle}.png`;
+      a.download = `chaincard-${handle}.png`;
       a.click();
     } catch (e) {
       console.error("card download failed", e);
