@@ -247,8 +247,9 @@ export default function Home() {
           </div>
 
           <BusinessCard
-            handle="degenkev"
-            bio="GM. degen, designer, and on-chain explorer."
+            handle="Chaincard"
+            bio="On-chain business cards. Inscribed on Solana, forever."
+            avatarSrc="/logo.png"
             socials={[
               { kind: "globe" },
               { kind: "x" },
