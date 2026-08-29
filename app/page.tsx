@@ -11,6 +11,7 @@ import {
 } from "../lib/card";
 import { compressAvatar } from "../lib/compress";
 import { mintCard } from "../lib/inscribe";
+import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
 import { MarqueeBar } from "./components/MarqueeBar";
 import { BusinessCard } from "./components/BusinessCard";
@@ -32,6 +33,7 @@ export default function Home() {
   const [telegram, setTelegram] = useState("");
   const [site, setSite] = useState("");
   const [wallets, setWallets] = useState("");
+  const [theme, setTheme] = useState(DEFAULT_THEME_ID);
   const [avatar, setAvatar] = useState<{
     bytes: Uint8Array;
     mime: string;
@@ -69,6 +71,7 @@ export default function Home() {
         ? { wallets: wallets.split(",").map((w) => w.trim()).filter(Boolean) }
         : {}),
     },
+    ...(theme !== DEFAULT_THEME_ID ? { theme } : {}),
   });
 
   const jsonSize = new TextEncoder().encode(JSON.stringify(buildCard())).length;
@@ -176,6 +179,7 @@ export default function Home() {
             ]}
             address="7XK3mockmockmockQ9ZF"
             demoAvatar
+            theme={theme}
           />
         </section>
 
@@ -199,6 +203,32 @@ export default function Home() {
                   accept="image/*"
                   onChange={(e) => onFile(e.target.files?.[0])}
                 />
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Card theme</label>
+              <div className="theme-row">
+                {THEME_IDS.map((id) => {
+                  const t = THEMES[id];
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`theme-chip${theme === id ? " selected" : ""}`}
+                      onClick={() => setTheme(id)}
+                      title={t.label}
+                      style={{ background: t.card, color: t.ink, borderColor: t.ink }}
+                    >
+                      <span className="chip-top">
+                        <i style={{ background: t.accent }} />
+                        <i style={{ background: t.accent2 }} />
+                        <i style={{ background: t.page }} />
+                      </span>
+                      <span className="chip-label">{t.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

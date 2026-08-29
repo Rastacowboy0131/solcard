@@ -11,6 +11,7 @@ import {
   TickMarks,
   PixelApe,
 } from "./icons";
+import { themeVars } from "../../lib/themes";
 
 export type BizSocial = {
   kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram";
@@ -36,6 +37,7 @@ export function BusinessCard({
   wallets,
   stickers = true,
   demoAvatar = false,
+  theme,
 }: {
   handle: string;
   bio: string;
@@ -45,6 +47,7 @@ export function BusinessCard({
   wallets?: string[];
   stickers?: boolean;
   demoAvatar?: boolean;
+  theme?: string;
 }) {
   // lime-highlight first word of bio
   const bioWords = bio.trim().split(/\s+/);
@@ -57,7 +60,7 @@ export function BusinessCard({
       : address;
 
   return (
-    <div className="card-stage">
+    <div className="card-stage" style={themeVars(theme)}>
       <div className="biz-card">
         <div className="biz-top">
           <div className="biz-avatar">

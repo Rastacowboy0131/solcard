@@ -24,10 +24,12 @@ export function DownloadCard({ handle }: { handle: string }) {
         right = Math.max(right, r.right);
         bottom = Math.max(bottom, r.bottom);
       });
+      const bg =
+        getComputedStyle(node).getPropertyValue("--paper").trim() || "#f4efe6";
       const dataUrl = await toPng(node, {
         pixelRatio: 2,
         cacheBust: true,
-        backgroundColor: "#f4efe6",
+        backgroundColor: bg,
         width: Math.ceil(right - left) + pad * 2,
         height: Math.ceil(bottom - top) + pad * 2,
         style: {

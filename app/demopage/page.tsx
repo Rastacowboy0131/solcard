@@ -2,6 +2,7 @@ import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
 import { BusinessCard, BizSocial } from "../components/BusinessCard";
 import { DownloadCard } from "../components/DownloadCard";
+import { themeVars } from "../../lib/themes";
 
 export const metadata = {
   title: "solcard.xyz/demopage | SolCard",
@@ -19,7 +20,7 @@ export default function DemoPage() {
   return (
     <>
       <SiteHeader active="" />
-      <main className="card-page">
+      <main className="card-page" style={themeVars("midnight")}>
         <BusinessCard
           handle="demopage"
           bio="Demo. This is what your minted card page looks like, avatar, bio and links read straight from the chain."
@@ -27,6 +28,7 @@ export default function DemoPage() {
           address="Demo1111111111111111111111111111111111111111"
           wallets={["demo.sol", "7XK3...Q9ZF"]}
           demoAvatar
+          theme="midnight"
         />
         <DownloadCard handle="demopage" />
         <p className="chain-note">

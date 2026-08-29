@@ -5,6 +5,7 @@ import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
 import { BusinessCard, BizSocial } from "../components/BusinessCard";
 import { DownloadCard } from "../components/DownloadCard";
+import { themeVars } from "../../lib/themes";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function CardPage({
   return (
     <>
       <SiteHeader active="" />
-      <main className="card-page">
+      <main className="card-page" style={themeVars(card.theme)}>
         <BusinessCard
           handle={card.name}
           bio={bio}
@@ -46,6 +47,7 @@ export default async function CardPage({
           socials={socials}
           address={mint}
           wallets={card.links?.wallets}
+          theme={card.theme}
         />
         <DownloadCard handle={card.name} />
         <p className="chain-note">

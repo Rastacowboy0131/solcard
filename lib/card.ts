@@ -4,6 +4,8 @@ export const MAX_AVATAR_BYTES = 35_000; // inscribed webp avatar cap
 export const MAX_JSON_BYTES = 12_000; // inscribed card json cap
 export const MAX_TOTAL_BYTES = 50_000; // whole payload target
 
+import { THEME_IDS } from "./themes";
+
 export const NAME_RE = /^[a-z0-9][a-z0-9-_]{1,31}$/;
 
 export type CardLinks = {
@@ -19,6 +21,7 @@ export type SolCard = {
   displayName: string;
   bio: string;
   links: CardLinks;
+  theme?: string; // optional card color theme id, see lib/themes.ts
 };
 
 export function validateCard(card: SolCard): string | null {
@@ -27,6 +30,8 @@ export function validateCard(card: SolCard): string | null {
   if (!card.displayName || card.displayName.length > 64)
     return "display name required, max 64 chars";
   if (card.bio.length > 500) return "bio max 500 chars";
+  if (card.theme !== undefined && !THEME_IDS.includes(card.theme))
+    return "unknown theme";
   const { x, telegram, site, wallets } = card.links ?? {};
   for (const [k, v] of Object.entries({ x, telegram, site })) {
     if (v && v.length > 200) return `${k} link too long`;
