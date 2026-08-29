@@ -45,7 +45,7 @@ const RPC_URL =
 const FEE_WALLET = process.env.NEXT_PUBLIC_FEE_WALLET || "";
 const FEE_SOL = Number(process.env.NEXT_PUBLIC_FEE_SOL || "0.15");
 // extra fee when a custom background image is inscribed (env-tunable)
-export const BG_FEE_SOL = Number(process.env.NEXT_PUBLIC_BG_FEE_SOL || "0.10");
+export const BG_FEE_SOL = Number(process.env.NEXT_PUBLIC_BG_FEE_SOL || "0");
 
 const CHUNK = 800; // bytes per writeData ix, keeps txs under size limit
 const AVATAR_TAG = "avatar";

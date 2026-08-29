@@ -238,7 +238,7 @@ export default function Home() {
 
             <div className="field">
               <label>
-                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp, +{BG_FEE_SOL} SOL)
+                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp{BG_FEE_SOL > 0 ? `, +${BG_FEE_SOL} SOL` : ""})
               </label>
               <div className="row">
                 {bg && (
