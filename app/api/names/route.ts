@@ -1,18 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { claimName } from "../../../lib/names";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
-  }
-  const { name, mint, owner } = body ?? {};
-  if (typeof name !== "string" || typeof mint !== "string" || typeof owner !== "string") {
-    return NextResponse.json({ error: "name, mint, owner required" }, { status: 400 });
-  }
-  const res = await claimName(name, mint, owner);
-  if (!res.ok) return NextResponse.json({ error: res.error }, { status: 409 });
-  return NextResponse.json({ ok: true });
+// Names are now claimed on-chain through the registry program; the server
+// no longer writes a local index. Kept as a stub so old clients get a
+// clear error instead of a 404.
+export async function POST() {
+  return NextResponse.json(
+    { error: "names are claimed on-chain now, update the app" },
+    { status: 410 }
+  );
 }

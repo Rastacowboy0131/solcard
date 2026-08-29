@@ -12,6 +12,8 @@ import {
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
 import { mintCard, BG_FEE_SOL } from "../lib/inscribe";
+import { claimNameOnChain } from "../lib/claim";
+import { shortKey } from "../lib/registry";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
 import { MarqueeBar } from "./components/MarqueeBar";
@@ -51,6 +53,7 @@ export default function Home() {
   const [result, setResult] = useState<{ mint: string; name: string } | null>(
     null
   );
+  const [takenBy, setTakenBy] = useState<string | null>(null);
 
   const buildCard = (): SolCard => ({
     v: 1,
@@ -117,26 +120,29 @@ export default function Home() {
       return setError(`payload too large (${totalSize} bytes, max ${MAX_TOTAL_BYTES})`);
     if (!wallet?.adapter || !publicKey) return setError("connect a wallet");
 
-    // check name availability first
+    // check on-chain name availability first
+    setTakenBy(null);
     const check = await fetch(`/api/names/${card.name}`);
-    if (check.ok) return setError("name already taken");
+    if (check.ok) {
+      const j = await check.json().catch(() => ({}));
+      setTakenBy(j.owner || null);
+      return setError("name already taken");
+    }
 
     setMinting(true);
     try {
       const res = await mintCard(wallet.adapter, card, avatar, setStatus, bg);
-      setStatus("Registering name...");
-      const reg = await fetch("/api/names", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: card.name,
-          mint: res.mint,
-          owner: publicKey.toBase58(),
-        }),
-      });
-      if (!reg.ok) {
-        const j = await reg.json().catch(() => ({}));
-        throw new Error(j.error || "name registration failed (card minted though)");
+      setStatus("Claiming name on-chain (0.15 SOL fee)...");
+      try {
+        await claimNameOnChain(wallet.adapter, card.name, res.mint);
+      } catch (e: any) {
+        const msg = String(e?.message || e);
+        if (msg.includes("already in use") || msg.includes("0x0")) {
+          throw new Error(
+            "name was claimed by someone else mid-mint (card minted, name not registered)"
+          );
+        }
+        throw new Error(`name claim failed (card minted though): ${msg}`);
       }
       setStatus("");
       setResult({ mint: res.mint, name: card.name });
@@ -350,7 +356,17 @@ export default function Home() {
             </button>
 
             {status && <div className="muted" style={{ marginTop: "0.5rem" }}>{status}</div>}
-            {error && <div className="error">{error}</div>}
+            {error && (
+              <div className="error">
+                {error}
+                {takenBy && (
+                  <>
+                    {" "}(owned by {shortKey(takenBy)},{" "}
+                    <a href={`/${name}`}>view card</a>)
+                  </>
+                )}
+              </div>
+            )}
             {result && (
               <div className="success">
                 Minted! Mint: {result.mint}. View your card at{" "}

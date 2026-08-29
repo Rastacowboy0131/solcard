@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { lookupName } from "../../lib/names";
+import { shortKey } from "../../lib/registry";
 import { fetchCardByMint } from "../../lib/chain";
 import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
@@ -61,6 +62,18 @@ export default async function CardPage({
           bgSrc={bgSrc}
         />
         <DownloadCard handle={card.name} />
+        <p className="chain-note">
+          Owner:{" "}
+          {entry.onChain ? (
+            <a
+              href={`https://explorer.solana.com/address/${entry.owner}?cluster=devnet`}
+            >
+              {shortKey(entry.owner)}
+            </a>
+          ) : (
+            <>{shortKey(entry.owner)} (legacy index, unclaimed on-chain)</>
+          )}
+        </p>
         <p className="chain-note">
           Read live from Solana devnet.{" "}
           <a
