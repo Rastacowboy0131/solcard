@@ -23,9 +23,9 @@ export function SiteHeader({ active = "home" }: { active?: string }) {
       <nav className="site-nav">
         <Link href="/" className={active === "home" ? "active" : ""}>Home</Link>
         <Link href="/market" className={active === "market" ? "active" : ""}>Market</Link>
-        <a href="/#builder">Explore</a>
-        <a href="/#builder">Docs</a>
-        <a href="/#builder">About</a>
+        <a href="/#builder">Mint</a>
+        <Link href="/docs" className={active === "docs" ? "active" : ""}>Docs</Link>
+        <a href="/docs#about">About</a>
       </nav>
       <div className="header-spacer" />
       <div className="header-wallet">
