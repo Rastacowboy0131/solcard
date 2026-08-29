@@ -27,6 +27,8 @@ export type CardColors = {
   name?: string;
   /** bio / body text color */
   bio?: string;
+  /** card face background color */
+  card?: string;
 };
 
 export type SolCard = {

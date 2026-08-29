@@ -8,7 +8,6 @@ import {
   CopyIcon,
   TelegramIcon,
   SolanaMark,
-  TickMarks,
   PixelApe,
 } from "./icons";
 import type { CSSProperties } from "react";
@@ -37,7 +36,6 @@ export function BusinessCard({
   socials,
   address,
   wallets,
-  stickers = true,
   demoAvatar = false,
   theme,
   bgSrc,
@@ -49,7 +47,6 @@ export function BusinessCard({
   socials: BizSocial[];
   address: string;
   wallets?: string[];
-  stickers?: boolean;
   demoAvatar?: boolean;
   theme?: string;
   bgSrc?: string;
@@ -79,7 +76,14 @@ export function BusinessCard({
           />
         </div>
       )}
-      <div className="biz-card">
+      <div
+        className="biz-card"
+        style={
+          colors?.card
+            ? ({ background: colors.card } as CSSProperties)
+            : undefined
+        }
+      >
         <div className="biz-top">
           <div className="biz-avatar">
             {avatarSrc ? (
@@ -144,15 +148,6 @@ export function BusinessCard({
         </div>
         <div className="biz-dots" />
       </div>
-      {stickers && (
-        <>
-          <div className="sticker-deleted">
-            Can&apos;t be deleted
-            <div className="sticker-ticks"><TickMarks /></div>
-          </div>
-          <div className="sticker-onchain">100% On-Chain</div>
-        </>
-      )}
     </div>
   );
 }

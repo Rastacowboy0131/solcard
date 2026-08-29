@@ -42,6 +42,7 @@ export default function Home() {
   const [theme, setTheme] = useState(DEFAULT_THEME_ID);
   const [nameColor, setNameColor] = useState<string | null>(null);
   const [bioColor, setBioColor] = useState<string | null>(null);
+  const [cardColor, setCardColor] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<{
     bytes: Uint8Array;
     mime: string;
@@ -74,11 +75,12 @@ export default function Home() {
         : {}),
     },
     ...(theme !== DEFAULT_THEME_ID ? { theme } : {}),
-    ...(nameColor || bioColor
+    ...(nameColor || bioColor || cardColor
       ? {
           colors: {
             ...(nameColor ? { name: nameColor } : {}),
             ...(bioColor ? { bio: bioColor } : {}),
+            ...(cardColor ? { card: cardColor } : {}),
           },
         }
       : {}),
@@ -340,7 +342,7 @@ export default function Home() {
             </div>
 
             <div className="field">
-              <label>Text colors (optional, follows theme by default)</label>
+              <label>Card colors (optional, follows theme by default)</label>
               <div className="color-row">
                 <ColorField
                   label="Name"
@@ -353,6 +355,12 @@ export default function Home() {
                   value={bioColor}
                   fallback={THEMES[theme].ink}
                   onChange={setBioColor}
+                />
+                <ColorField
+                  label="Card"
+                  value={cardColor}
+                  fallback={THEMES[theme].card}
+                  onChange={setCardColor}
                 />
               </div>
             </div>
@@ -459,6 +467,7 @@ export default function Home() {
               colors={{
                 ...(nameColor ? { name: nameColor } : {}),
                 ...(bioColor ? { bio: bioColor } : {}),
+                ...(cardColor ? { card: cardColor } : {}),
               }}
             />
             {!bg && (
