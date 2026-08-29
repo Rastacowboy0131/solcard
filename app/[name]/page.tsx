@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { lookupName } from "../../lib/names";
 import { fetchCardByMint } from "../../lib/chain";
@@ -20,7 +21,8 @@ export default async function CardPage({
   const data = await fetchCardByMint(entry.mint);
   if (!data) notFound();
 
-  const { card, avatarBase64, mint, inscription } = data;
+  const { card, avatarBase64, bgBase64, mint, inscription } = data;
+  const bgSrc = bgBase64 ? `data:image/webp;base64,${bgBase64}` : undefined;
 
   const socials: BizSocial[] = [];
   if (card.links?.site) socials.push({ kind: "globe", href: card.links.site });
@@ -35,7 +37,15 @@ export default async function CardPage({
   return (
     <>
       <SiteHeader active="" />
-      <main className="card-page" style={themeVars(card.theme)}>
+      <main
+        className={`card-page${bgSrc ? " has-bg" : ""}`}
+        style={{
+          ...themeVars(card.theme),
+          ...(bgSrc
+            ? ({ "--page-bg-image": `url(${bgSrc})` } as CSSProperties)
+            : {}),
+        }}
+      >
         <BusinessCard
           handle={card.name}
           bio={bio}
@@ -48,6 +58,7 @@ export default async function CardPage({
           address={mint}
           wallets={card.links?.wallets}
           theme={card.theme}
+          bgSrc={bgSrc}
         />
         <DownloadCard handle={card.name} />
         <p className="chain-note">

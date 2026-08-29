@@ -6,10 +6,11 @@ import {
   SolCard,
   validateCard,
   MAX_AVATAR_BYTES,
+  MAX_BG_BYTES,
   MAX_TOTAL_BYTES,
   NAME_RE,
 } from "../lib/card";
-import { compressAvatar } from "../lib/compress";
+import { compressAvatar, compressBg } from "../lib/compress";
 import { mintCard } from "../lib/inscribe";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
@@ -39,24 +40,17 @@ export default function Home() {
     mime: string;
     preview: string;
   } | null>(null);
+  const [bg, setBg] = useState<{
+    bytes: Uint8Array;
+    mime: string;
+    preview: string;
+  } | null>(null);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [minting, setMinting] = useState(false);
   const [result, setResult] = useState<{ mint: string; name: string } | null>(
     null
   );
-
-  const onFile = useCallback(async (f: File | undefined) => {
-    setError("");
-    if (!f) return;
-    try {
-      const out = await compressAvatar(f, MAX_AVATAR_BYTES);
-      const b64 = btoa(String.fromCharCode(...out.bytes));
-      setAvatar({ ...out, preview: `data:${out.mime};base64,${b64}` });
-    } catch (e: any) {
-      setError(e.message || "image compression failed");
-    }
-  }, []);
 
   const buildCard = (): SolCard => ({
     v: 1,
@@ -75,7 +69,42 @@ export default function Home() {
   });
 
   const jsonSize = new TextEncoder().encode(JSON.stringify(buildCard())).length;
-  const totalSize = jsonSize + (avatar?.bytes.length ?? 0);
+  const totalSize =
+    jsonSize + (avatar?.bytes.length ?? 0) + (bg?.bytes.length ?? 0);
+
+  const onFile = useCallback(async (f: File | undefined) => {
+    setError("");
+    if (!f) return;
+    try {
+      const out = await compressAvatar(f, MAX_AVATAR_BYTES);
+      const b64 = btoa(String.fromCharCode(...out.bytes));
+      setAvatar({ ...out, preview: `data:${out.mime};base64,${b64}` });
+    } catch (e: any) {
+      setError(e.message || "image compression failed");
+    }
+  }, []);
+
+  const onBgFile = useCallback(
+    async (f: File | undefined) => {
+      setError("");
+      if (!f) return;
+      try {
+        // Budget: json + avatar + bg must stay under MAX_TOTAL_BYTES.
+        // Bg steps down first; avatar is untouched unless space is impossible.
+        const used = jsonSize + (avatar?.bytes.length ?? 0);
+        const cap = Math.max(
+          4_000,
+          Math.min(MAX_BG_BYTES, MAX_TOTAL_BYTES - used - 500)
+        );
+        const out = await compressBg(f, cap);
+        const b64 = btoa(String.fromCharCode(...out.bytes));
+        setBg({ ...out, preview: `data:${out.mime};base64,${b64}` });
+      } catch (e: any) {
+        setError(e.message || "background compression failed");
+      }
+    },
+    [avatar, jsonSize]
+  );
 
   async function onMint() {
     setError("");
@@ -94,7 +123,7 @@ export default function Home() {
 
     setMinting(true);
     try {
-      const res = await mintCard(wallet.adapter, card, avatar, setStatus);
+      const res = await mintCard(wallet.adapter, card, avatar, setStatus, bg);
       setStatus("Registering name...");
       const reg = await fetch("/api/names", {
         method: "POST",
@@ -180,6 +209,7 @@ export default function Home() {
             address="7XK3mockmockmockQ9ZF"
             demoAvatar
             theme={theme}
+            bgSrc={bg?.preview}
           />
         </section>
 
@@ -202,6 +232,34 @@ export default function Home() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => onFile(e.target.files?.[0])}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label>
+                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp)
+              </label>
+              <div className="row">
+                {bg && (
+                  <>
+                    <img src={bg.preview} className="bg-preview" alt="" />
+                    <span className="muted">
+                      {bg.bytes.length.toLocaleString()} bytes
+                    </span>
+                    <button
+                      type="button"
+                      className="brut-btn btn-remove-bg"
+                      onClick={() => setBg(null)}
+                    >
+                      ✕ Remove
+                    </button>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => onBgFile(e.target.files?.[0])}
                 />
               </div>
             </div>

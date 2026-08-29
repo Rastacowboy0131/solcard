@@ -11,7 +11,7 @@ import {
   TickMarks,
   PixelApe,
 } from "./icons";
-import { themeVars } from "../../lib/themes";
+import { themeVars, getTheme } from "../../lib/themes";
 
 export type BizSocial = {
   kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram";
@@ -38,6 +38,7 @@ export function BusinessCard({
   stickers = true,
   demoAvatar = false,
   theme,
+  bgSrc,
 }: {
   handle: string;
   bio: string;
@@ -48,6 +49,7 @@ export function BusinessCard({
   stickers?: boolean;
   demoAvatar?: boolean;
   theme?: string;
+  bgSrc?: string;
 }) {
   // lime-highlight first word of bio
   const bioWords = bio.trim().split(/\s+/);
@@ -60,7 +62,19 @@ export function BusinessCard({
       : address;
 
   return (
-    <div className="card-stage" style={themeVars(theme)}>
+    <div
+      className={`card-stage${bgSrc ? " has-bg" : ""}`}
+      style={themeVars(theme)}
+    >
+      {bgSrc && (
+        <div className="card-bg" aria-hidden>
+          <img src={bgSrc} alt="" />
+          <div
+            className="card-bg-tint"
+            style={{ background: getTheme(theme).page, opacity: 0.8 }}
+          />
+        </div>
+      )}
       <div className="biz-card">
         <div className="biz-top">
           <div className="biz-avatar">

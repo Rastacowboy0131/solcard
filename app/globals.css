@@ -217,6 +217,26 @@ a { color: var(--ink); text-decoration: none; }
 
 /* ============ Business card component ============ */
 .card-stage { position: relative; padding: 44px 36px 44px 0; align-self: center; color: var(--ink); }
+.card-stage.has-bg { padding: 44px 36px; }
+.card-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 4px solid var(--ink);
+  z-index: 0;
+}
+.card-bg img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.card-bg-tint { position: absolute; inset: 0; }
+.card-stage.has-bg > .biz-card,
+.card-stage.has-bg > .sticker-deleted,
+.card-stage.has-bg > .sticker-onchain { z-index: 1; }
 .biz-card {
   position: relative;
   background: var(--paper2);
@@ -455,6 +475,18 @@ a { color: var(--ink); text-decoration: none; }
   background: var(--purple);
 }
 
+.bg-preview {
+  width: 132px;
+  height: 84px;
+  object-fit: cover;
+  border: 3px solid var(--ink);
+  background: var(--purple);
+}
+.btn-remove-bg {
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
 /* ============ Theme picker swatches ============ */
 .theme-row { display: flex; gap: 12px; flex-wrap: wrap; }
 .theme-chip {
@@ -499,6 +531,22 @@ a { color: var(--ink); text-decoration: none; }
   align-items: center;
   padding: 56px 24px 80px;
 }
+.card-page.has-bg {
+  background-image: var(--page-bg-image);
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: normal;
+  position: relative;
+}
+.card-page.has-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper);
+  opacity: 0.82;
+  pointer-events: none;
+}
+.card-page.has-bg > * { position: relative; }
 .card-page .card-stage { width: 100%; max-width: 560px; }
 .btn-download { margin-top: 44px; }
 .chain-note { text-align: center; margin-top: 24px; font-size: 13px; }

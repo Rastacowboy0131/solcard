@@ -18,6 +18,35 @@ export async function compressAvatar(
   throw new Error("could not compress avatar under size cap");
 }
 
+// Background image compression: keep aspect ratio, step widths down and
+// binary-search webp quality until under maxBytes.
+export async function compressBg(
+  file: File,
+  maxBytes: number
+): Promise<{ bytes: Uint8Array; mime: string }> {
+  const img = await loadImage(file);
+  for (const width of [800, 640, 480, 360, 280, 200]) {
+    const canvas = drawScaled(img, width);
+    const blob = await bestQualityUnder(canvas, maxBytes);
+    if (blob) {
+      const buf = new Uint8Array(await blob.arrayBuffer());
+      return { bytes: buf, mime: blob.type };
+    }
+  }
+  throw new Error("could not compress background under size cap");
+}
+
+function drawScaled(img: HTMLImageElement, width: number): HTMLCanvasElement {
+  const w = Math.min(width, img.width);
+  const h = Math.max(1, Math.round((img.height / img.width) * w));
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas;
+}
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);

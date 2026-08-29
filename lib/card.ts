@@ -1,6 +1,7 @@
 // Shared card schema + size limits, used client-side and server-side.
 
 export const MAX_AVATAR_BYTES = 35_000; // inscribed webp avatar cap
+export const MAX_BG_BYTES = 15_000; // inscribed webp background image cap
 export const MAX_JSON_BYTES = 12_000; // inscribed card json cap
 export const MAX_TOTAL_BYTES = 50_000; // whole payload target
 

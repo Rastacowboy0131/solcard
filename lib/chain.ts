@@ -16,10 +16,12 @@ import type { SolCard } from "./card";
 const RPC_URL =
   process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 const AVATAR_TAG = "avatar";
+const BG_TAG = "bg";
 
 export type OnChainCard = {
   card: SolCard;
   avatarBase64: string | null; // data URL friendly
+  bgBase64: string | null; // optional background image
   mint: string;
   inscription: string;
 };
@@ -59,9 +61,24 @@ export async function fetchCardByMint(
     // no avatar inscribed, fine
   }
 
+  let bgBase64: string | null = null;
+  try {
+    const bgPda = findAssociatedInscriptionPda(umi, {
+      associated_tag: BG_TAG,
+      inscriptionMetadataAccount: inscriptionMetadataAccount[0],
+    });
+    const bgAcc = await umi.rpc.getAccount(bgPda[0]);
+    if (bgAcc.exists && bgAcc.data.length > 0) {
+      bgBase64 = Buffer.from(bgAcc.data).toString("base64");
+    }
+  } catch {
+    // no background inscribed, fine (older cards)
+  }
+
   return {
     card,
     avatarBase64,
+    bgBase64,
     mint: mintStr,
     inscription: inscriptionAccount[0].toString(),
   };

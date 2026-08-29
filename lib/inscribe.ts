@@ -47,6 +47,7 @@ const FEE_SOL = Number(process.env.NEXT_PUBLIC_FEE_SOL || "0.15");
 
 const CHUNK = 800; // bytes per writeData ix, keeps txs under size limit
 const AVATAR_TAG = "avatar";
+const BG_TAG = "bg";
 
 export type MintProgress = (msg: string) => void;
 
@@ -54,7 +55,8 @@ export async function mintCard(
   wallet: WalletAdapter,
   card: SolCard,
   avatar: { bytes: Uint8Array; mime: string },
-  onProgress: MintProgress
+  onProgress: MintProgress,
+  bg?: { bytes: Uint8Array; mime: string } | null
 ): Promise<{ mint: string; inscription: string }> {
   const umi: Umi = createUmi(RPC_URL)
     .use(mplInscription())
@@ -117,6 +119,22 @@ export async function mintCard(
     inscriptionMetadataAccount: inscriptionMetadataAccount[0],
   });
 
+  // 3b. Associated inscription for the optional background image
+  let bgInscriptionAccount: ReturnType<typeof findAssociatedInscriptionPda> | null =
+    null;
+  if (bg) {
+    onProgress("Initializing background inscription...");
+    await (initializeAssociatedInscription(umi, {
+      inscriptionAccount: inscriptionAccount[0],
+      inscriptionMetadataAccount,
+      associationTag: BG_TAG,
+    }) as TransactionBuilder).sendAndConfirm(umi);
+    bgInscriptionAccount = findAssociatedInscriptionPda(umi, {
+      associated_tag: BG_TAG,
+      inscriptionMetadataAccount: inscriptionMetadataAccount[0],
+    });
+  }
+
   // 4. Write json chunks
   await writeChunks(
     umi,
@@ -142,6 +160,21 @@ export async function mintCard(
     "avatar",
     onProgress
   );
+
+  // 6. Write background chunks (optional)
+  if (bg && bgInscriptionAccount) {
+    await writeChunks(
+      umi,
+      bg.bytes,
+      {
+        inscriptionAccount: bgInscriptionAccount[0],
+        inscriptionMetadataAccount,
+        associatedTag: BG_TAG,
+      },
+      "background",
+      onProgress
+    );
+  }
 
   return {
     mint: mint.publicKey.toString(),
