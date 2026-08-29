@@ -24,17 +24,29 @@ export type NameEntry = {
   owner: string;
   ts: number;
   onChain: boolean;
+  listingState: number;
+  listingPrice: number;
 };
 
 export async function lookupName(name: string): Promise<NameEntry | null> {
   const key = name.toLowerCase();
   try {
     const rec = await fetchNameRecord(getConnection(), key);
-    if (rec) return { mint: rec.mint, owner: rec.owner, ts: rec.ts, onChain: true };
+    if (rec)
+      return {
+        mint: rec.mint,
+        owner: rec.owner,
+        ts: rec.ts,
+        onChain: true,
+        listingState: rec.listingState,
+        listingPrice: rec.listingPrice,
+      };
   } catch {
     // RPC hiccup: fall through to json fallback
   }
   const idx = await loadJsonFallback();
   const entry = idx[key];
-  return entry ? { ...entry, onChain: false } : null;
+  return entry
+    ? { ...entry, onChain: false, listingState: 0, listingPrice: 0 }
+    : null;
 }

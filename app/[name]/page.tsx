@@ -7,6 +7,7 @@ import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
 import { BusinessCard, BizSocial } from "../components/BusinessCard";
 import { DownloadCard } from "../components/DownloadCard";
+import { MarketPanel } from "../components/MarketPanel";
 import { themeVars } from "../../lib/themes";
 
 export const dynamic = "force-dynamic";
@@ -62,6 +63,14 @@ export default async function CardPage({
           bgSrc={bgSrc}
         />
         <DownloadCard handle={card.name} />
+        {entry.onChain && (
+          <MarketPanel
+            name={params.name.toLowerCase()}
+            owner={entry.owner}
+            listingState={entry.listingState}
+            listingPrice={entry.listingPrice}
+          />
+        )}
         <p className="chain-note">
           Owner:{" "}
           {entry.onChain ? (

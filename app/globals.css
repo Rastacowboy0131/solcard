@@ -552,6 +552,95 @@ a { color: var(--ink); text-decoration: none; }
 .chain-note { text-align: center; margin-top: 24px; font-size: 13px; }
 .chain-note a { text-decoration: underline; font-weight: 700; }
 
+/* ============ Marketplace ============ */
+.market-page { padding-bottom: 96px; min-height: calc(100vh - 260px); }
+.market-page .section-title { margin-top: 40px; }
+.market-sort-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.sort-btn {
+  background: var(--paper2);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  box-shadow: 5px 5px 0 var(--ink);
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 13px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.sort-btn:hover { transform: translate(1px, 1px); box-shadow: 4px 4px 0 var(--ink); }
+.sort-btn.active { background: var(--purple); color: var(--paper2); }
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+}
+.market-item {
+  background: var(--paper2);
+  border: 5px solid var(--ink);
+  box-shadow: 10px 10px 0 var(--ink);
+  padding: 24px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  clip-path: polygon(18px 0, 100% 0, 100% 100%, 0 100%, 0 18px);
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.market-item:hover { transform: translate(2px, 2px); box-shadow: 8px 8px 0 var(--ink); }
+.market-item-name {
+  font-size: clamp(26px, 2.6vw, 34px);
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+}
+.market-item-price {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--lime);
+  border: 3px solid var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+}
+.market-item-owner { font-size: 12px; }
+.market-item-cta {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--purple);
+}
+.market-empty { max-width: 560px; margin-bottom: 0; }
+
+/* Card page market panel */
+.market-panel {
+  width: 100%;
+  max-width: 560px;
+  margin: 36px 0 0;
+  padding: 26px 28px;
+}
+.market-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.market-title { font-size: 30px; letter-spacing: -1px; }
+.market-price-tag {
+  background: var(--lime);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+}
+
 /* ============ Responsive ============ */
 @media (max-width: 980px) {
   .hero-grid { grid-template-columns: 1fr; gap: 44px; padding-top: 32px; padding-bottom: 56px; }

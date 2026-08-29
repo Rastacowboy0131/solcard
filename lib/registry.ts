@@ -117,6 +117,167 @@ export function claimIx(
   });
 }
 
+function encU64(n: bigint | number) {
+  const b = Buffer.alloc(8);
+  b.writeBigUInt64LE(BigInt(n));
+  return b;
+}
+
+// ListName (tag 6): owner lists their name for sale, price in lamports.
+export function listIx(
+  owner: PublicKey,
+  name: string,
+  priceLamports: number | bigint
+): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: false },
+      { pubkey: namePda(name), isSigner: false, isWritable: true },
+    ],
+    data: Buffer.concat([
+      Buffer.from([6]),
+      encString(name.toLowerCase()),
+      encU64(priceLamports),
+    ]),
+  });
+}
+
+// DelistName (tag 7): owner cancels a listing.
+export function delistIx(
+  owner: PublicKey,
+  name: string
+): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: false },
+      { pubkey: namePda(name), isSigner: false, isWritable: true },
+    ],
+    data: Buffer.concat([Buffer.from([7]), encString(name.toLowerCase())]),
+  });
+}
+
+// BuyName (tag 8): buyer purchases a listed name. expectedPrice must equal
+// the on-chain listing_price (front-run protection).
+export function buyIx(
+  buyer: PublicKey,
+  name: string,
+  expectedPriceLamports: number | bigint,
+  seller: PublicKey,
+  feeWallet: PublicKey
+): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: buyer, isSigner: true, isWritable: true },
+      { pubkey: configPda(), isSigner: false, isWritable: false },
+      { pubkey: feeWallet, isSigner: false, isWritable: true },
+      { pubkey: seller, isSigner: false, isWritable: true },
+      { pubkey: namePda(name), isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: Buffer.concat([
+      Buffer.from([8]),
+      encString(name.toLowerCase()),
+      encU64(expectedPriceLamports),
+    ]),
+  });
+}
+
+export type Listing = {
+  name: string;
+  owner: string;
+  mint: string;
+  priceLamports: number;
+  ts: number;
+};
+
+// All currently listed names: getProgramAccounts on 113-byte name PDAs with
+// listing_state == 1 at offset 72. The PDA data does not store the name
+// (only the seeds do), so each listed PDA's name is recovered from the
+// ListName instruction data in its recent transaction history, then
+// verified by re-deriving the PDA from the candidate name.
+export async function fetchListings(conn: Connection): Promise<Listing[]> {
+  const accounts = await conn.getProgramAccounts(PROGRAM_ID, {
+    filters: [
+      { dataSize: 113 },
+      { memcmp: { offset: 72, bytes: "2" } }, // base58(0x01) = "2"
+    ],
+  });
+  const out: Listing[] = [];
+  for (const { pubkey, account } of accounts) {
+    const rec = decodeNameRecord(account.data);
+    if (!rec || rec.listingState !== 1) continue;
+    const name = await resolveNameFromHistory(conn, pubkey);
+    if (!name) continue;
+    out.push({
+      name,
+      owner: rec.owner,
+      mint: rec.mint,
+      priceLamports: rec.listingPrice,
+      ts: rec.ts,
+    });
+  }
+  return out;
+}
+
+// Walk the PDA's recent signatures, find a registry instruction whose data
+// carries the name string (tags 1 claim, 2 update, 6 list, 7 delist, 8 buy)
+// and verify by re-deriving the PDA.
+async function resolveNameFromHistory(
+  conn: Connection,
+  pda: PublicKey
+): Promise<string | null> {
+  const sigs = await conn.getSignaturesForAddress(pda, { limit: 10 });
+  for (const s of sigs) {
+    if (s.err) continue;
+    const tx = await conn.getTransaction(s.signature, {
+      maxSupportedTransactionVersion: 0,
+    });
+    if (!tx) continue;
+    const msg = tx.transaction.message;
+    const keys = msg.staticAccountKeys ?? (msg as any).accountKeys;
+    const ixs = msg.compiledInstructions ?? (msg as any).instructions;
+    for (const ix of ixs) {
+      const pid = keys[ix.programIdIndex];
+      if (!pid || !pid.equals(PROGRAM_ID)) continue;
+      const data = Buffer.from(
+        typeof ix.data === "string" ? bs58decode(ix.data) : ix.data
+      );
+      if (data.length < 5) continue;
+      const tag = data[0];
+      if (![1, 2, 6, 7, 8].includes(tag)) continue;
+      const len = data.readUInt32LE(1);
+      if (len === 0 || len > 64 || data.length < 5 + len) continue;
+      const candidate = data.subarray(5, 5 + len).toString("utf8");
+      if (/^[a-z0-9_-]+$/.test(candidate) && namePda(candidate).equals(pda))
+        return candidate;
+    }
+  }
+  return null;
+}
+
+const B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+function bs58decode(s: string): Uint8Array {
+  let n = 0n;
+  for (const c of s) {
+    const i = B58.indexOf(c);
+    if (i === -1) throw new Error("bad base58");
+    n = n * 58n + BigInt(i);
+  }
+  const bytes: number[] = [];
+  while (n > 0n) {
+    bytes.unshift(Number(n & 0xffn));
+    n >>= 8n;
+  }
+  for (const c of s) {
+    if (c === "1") bytes.unshift(0);
+    else break;
+  }
+  return Uint8Array.from(bytes);
+}
+
 export function shortKey(pk: string) {
   return pk.length > 12 ? `${pk.slice(0, 4)}..${pk.slice(-4)}` : pk;
 }

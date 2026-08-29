@@ -22,6 +22,7 @@ export function SiteHeader({ active = "home" }: { active?: string }) {
       </Link>
       <nav className="site-nav">
         <Link href="/" className={active === "home" ? "active" : ""}>Home</Link>
+        <Link href="/market" className={active === "market" ? "active" : ""}>Market</Link>
         <a href="/#builder">Explore</a>
         <a href="/#builder">Docs</a>
         <a href="/#builder">About</a>
