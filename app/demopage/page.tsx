@@ -1,6 +1,7 @@
 import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
 import { BusinessCard, BizSocial } from "../components/BusinessCard";
+import { DownloadCard } from "../components/DownloadCard";
 
 export const metadata = {
   title: "solcard.xyz/demopage | SolCard",
@@ -27,6 +28,7 @@ export default function DemoPage() {
           wallets={["demo.sol", "7XK3...Q9ZF"]}
           demoAvatar
         />
+        <DownloadCard handle="demopage" />
         <p className="chain-note">
           Demo preview, not a real inscription. Mint your own on the{" "}
           <a href="/#builder">builder</a> and it lives at solcard.xyz/yourname,

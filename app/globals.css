@@ -462,7 +462,8 @@ a { color: var(--ink); text-decoration: none; }
   padding: 56px 24px 80px;
 }
 .card-page .card-stage { width: 100%; max-width: 560px; }
-.chain-note { text-align: center; margin-top: 40px; font-size: 13px; }
+.btn-download { margin-top: 44px; }
+.chain-note { text-align: center; margin-top: 24px; font-size: 13px; }
 .chain-note a { text-decoration: underline; font-weight: 700; }
 
 /* ============ Responsive ============ */

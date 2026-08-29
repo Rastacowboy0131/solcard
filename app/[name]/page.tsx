@@ -4,6 +4,7 @@ import { fetchCardByMint } from "../../lib/chain";
 import { SiteHeader } from "../components/SiteHeader";
 import { MarqueeBar } from "../components/MarqueeBar";
 import { BusinessCard, BizSocial } from "../components/BusinessCard";
+import { DownloadCard } from "../components/DownloadCard";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,7 @@ export default async function CardPage({
           address={mint}
           wallets={card.links?.wallets}
         />
+        <DownloadCard handle={card.name} />
         <p className="chain-note">
           Read live from Solana devnet.{" "}
           <a
