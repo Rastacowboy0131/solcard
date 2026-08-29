@@ -13,7 +13,7 @@ export function DownloadCard({ handle }: { handle: string }) {
     try {
       // render at 2x with breathing room so the rotated stickers
       // that overflow the card stage aren't clipped
-      const pad = 48;
+      const pad = 90;
       const dataUrl = await toPng(node, {
         pixelRatio: 2,
         cacheBust: true,
