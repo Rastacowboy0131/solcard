@@ -79,21 +79,28 @@ async function bestQualityUnder(
   canvas: HTMLCanvasElement,
   maxBytes: number
 ): Promise<Blob | null> {
-  let lo = 0.2;
-  let hi = 0.92;
-  let best: Blob | null = null;
-  for (let i = 0; i < 7; i++) {
-    const q = (lo + hi) / 2;
-    const blob = await toBlob(canvas, "image/webp", q);
-    if (!blob) return null;
-    if (blob.size <= maxBytes) {
-      best = blob;
-      lo = q;
-    } else {
-      hi = q;
+  // Safari (iOS) cannot encode webp from canvas: toBlob returns null or a png.
+  // Try webp first, fall back to jpeg which every browser encodes.
+  for (const type of ["image/webp", "image/jpeg"]) {
+    const probe = await toBlob(canvas, type, 0.8);
+    if (!probe || probe.type !== type) continue;
+    let lo = 0.2;
+    let hi = 0.92;
+    let best: Blob | null = null;
+    for (let i = 0; i < 7; i++) {
+      const q = (lo + hi) / 2;
+      const blob = await toBlob(canvas, type, q);
+      if (!blob || blob.type !== type) break;
+      if (blob.size <= maxBytes) {
+        best = blob;
+        lo = q;
+      } else {
+        hi = q;
+      }
     }
+    if (best) return best;
   }
-  return best;
+  return null;
 }
 
 function toBlob(
