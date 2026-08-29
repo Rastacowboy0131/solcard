@@ -11,7 +11,7 @@ import {
   NAME_RE,
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
-import { mintCard } from "../lib/inscribe";
+import { mintCard, BG_FEE_SOL } from "../lib/inscribe";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
 import { MarqueeBar } from "./components/MarqueeBar";
@@ -238,7 +238,7 @@ export default function Home() {
 
             <div className="field">
               <label>
-                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp)
+                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp, +{BG_FEE_SOL} SOL)
               </label>
               <div className="row">
                 {bg && (

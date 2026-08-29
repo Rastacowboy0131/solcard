@@ -44,6 +44,8 @@ const RPC_URL =
   process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 const FEE_WALLET = process.env.NEXT_PUBLIC_FEE_WALLET || "";
 const FEE_SOL = Number(process.env.NEXT_PUBLIC_FEE_SOL || "0.15");
+// extra fee when a custom background image is inscribed (env-tunable)
+export const BG_FEE_SOL = Number(process.env.NEXT_PUBLIC_BG_FEE_SOL || "0.10");
 
 const CHUNK = 800; // bytes per writeData ix, keeps txs under size limit
 const AVATAR_TAG = "avatar";
@@ -100,7 +102,7 @@ export async function mintCard(
     init = init.add(
       transferSol(umi, {
         destination: publicKey(FEE_WALLET),
-        amount: sol(FEE_SOL),
+        amount: sol(FEE_SOL + (bg ? BG_FEE_SOL : 0)),
       })
     );
   }
