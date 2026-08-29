@@ -22,9 +22,25 @@ export type OnChainCard = {
   card: SolCard;
   avatarBase64: string | null; // data URL friendly
   bgBase64: string | null; // optional background image
+  bgMime: string; // detected from magic bytes, defaults to webp
   mint: string;
   inscription: string;
 };
+
+// Detect image mime from magic bytes so animated GIFs get the right
+// data-URL type (a gif served as image/webp may not animate everywhere).
+function sniffImageMime(bytes: Uint8Array): string {
+  if (
+    bytes.length > 5 &&
+    bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 // "GIF"
+  )
+    return "image/gif";
+  if (bytes.length > 2 && bytes[0] === 0xff && bytes[1] === 0xd8)
+    return "image/jpeg";
+  if (bytes.length > 4 && bytes[0] === 0x89 && bytes[1] === 0x50)
+    return "image/png";
+  return "image/webp";
+}
 
 export async function fetchCardByMint(
   mintStr: string
@@ -62,6 +78,7 @@ export async function fetchCardByMint(
   }
 
   let bgBase64: string | null = null;
+  let bgMime = "image/webp";
   try {
     const bgPda = findAssociatedInscriptionPda(umi, {
       associated_tag: BG_TAG,
@@ -70,6 +87,7 @@ export async function fetchCardByMint(
     const bgAcc = await umi.rpc.getAccount(bgPda[0]);
     if (bgAcc.exists && bgAcc.data.length > 0) {
       bgBase64 = Buffer.from(bgAcc.data).toString("base64");
+      bgMime = sniffImageMime(bgAcc.data);
     }
   } catch {
     // no background inscribed, fine (older cards)
@@ -79,6 +97,7 @@ export async function fetchCardByMint(
     card,
     avatarBase64,
     bgBase64,
+    bgMime,
     mint: mintStr,
     inscription: inscriptionAccount[0].toString(),
   };

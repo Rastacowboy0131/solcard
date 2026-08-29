@@ -11,7 +11,9 @@ import {
   TickMarks,
   PixelApe,
 } from "./icons";
+import type { CSSProperties } from "react";
 import { themeVars, getTheme } from "../../lib/themes";
+import type { CardColors } from "../../lib/card";
 
 export type BizSocial = {
   kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram";
@@ -39,6 +41,7 @@ export function BusinessCard({
   demoAvatar = false,
   theme,
   bgSrc,
+  colors,
 }: {
   handle: string;
   bio: string;
@@ -50,6 +53,7 @@ export function BusinessCard({
   demoAvatar?: boolean;
   theme?: string;
   bgSrc?: string;
+  colors?: CardColors;
 }) {
   // lime-highlight first word of bio
   const bioWords = bio.trim().split(/\s+/);
@@ -88,13 +92,27 @@ export function BusinessCard({
           </div>
           <div className="biz-id">
             <div className="biz-handle-row">
-              <span className="biz-handle">@{handle}</span>
+              <span
+                className="biz-handle"
+                style={
+                  colors?.name
+                    ? ({ color: colors.name } as CSSProperties)
+                    : undefined
+                }
+              >
+                @{handle}
+              </span>
               <SolanaMark className="biz-solmark" />
             </div>
             <hr className="biz-rule" />
           </div>
         </div>
-        <p className="biz-bio">
+        <p
+          className="biz-bio"
+          style={
+            colors?.bio ? ({ color: colors.bio } as CSSProperties) : undefined
+          }
+        >
           <span className="hl">{first}</span> {rest}
         </p>
         <div className="biz-socials">

@@ -7,7 +7,9 @@ import {
   validateCard,
   MAX_AVATAR_BYTES,
   MAX_BG_BYTES,
+  MAX_GIF_BG_BYTES,
   MAX_TOTAL_BYTES,
+  MAX_TOTAL_BYTES_GIF,
   NAME_RE,
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
@@ -18,6 +20,7 @@ import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
 import { MarqueeBar } from "./components/MarqueeBar";
 import { BusinessCard } from "./components/BusinessCard";
+import type { BizSocial } from "./components/BusinessCard";
 import {
   GlobeIcon,
   LockIcon,
@@ -37,6 +40,8 @@ export default function Home() {
   const [site, setSite] = useState("");
   const [wallets, setWallets] = useState("");
   const [theme, setTheme] = useState(DEFAULT_THEME_ID);
+  const [nameColor, setNameColor] = useState<string | null>(null);
+  const [bioColor, setBioColor] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<{
     bytes: Uint8Array;
     mime: string;
@@ -69,7 +74,18 @@ export default function Home() {
         : {}),
     },
     ...(theme !== DEFAULT_THEME_ID ? { theme } : {}),
+    ...(nameColor || bioColor
+      ? {
+          colors: {
+            ...(nameColor ? { name: nameColor } : {}),
+            ...(bioColor ? { bio: bioColor } : {}),
+          },
+        }
+      : {}),
   });
+
+  const bgIsGif = bg?.mime === "image/gif";
+  const totalCap = bgIsGif ? MAX_TOTAL_BYTES_GIF : MAX_TOTAL_BYTES;
 
   const jsonSize = new TextEncoder().encode(JSON.stringify(buildCard())).length;
   const totalSize =
@@ -92,6 +108,25 @@ export default function Home() {
       setError("");
       if (!f) return;
       try {
+        if (f.type === "image/gif") {
+          // Animated GIF: recompressing through canvas would freeze the
+          // animation, so keep the original bytes and enforce a hard cap.
+          if (f.size > MAX_GIF_BG_BYTES) {
+            setError(
+              `GIF too large: ${(f.size / 1000).toFixed(0)}kb, max ${
+                MAX_GIF_BG_BYTES / 1000
+              }kb. Animated GIFs are stored as-is on-chain, try a smaller or shorter one.`
+            );
+            return;
+          }
+          const bytes = new Uint8Array(await f.arrayBuffer());
+          setBg({
+            bytes,
+            mime: "image/gif",
+            preview: URL.createObjectURL(f),
+          });
+          return;
+        }
         // Budget: json + avatar + bg must stay under MAX_TOTAL_BYTES.
         // Bg steps down first; avatar is untouched unless space is impossible.
         const used = jsonSize + (avatar?.bytes.length ?? 0);
@@ -116,8 +151,8 @@ export default function Home() {
     const err = validateCard(card);
     if (err) return setError(err);
     if (!avatar) return setError("upload a profile picture");
-    if (totalSize > MAX_TOTAL_BYTES)
-      return setError(`payload too large (${totalSize} bytes, max ${MAX_TOTAL_BYTES})`);
+    if (totalSize > totalCap)
+      return setError(`payload too large (${totalSize} bytes, max ${totalCap})`);
     if (!wallet?.adapter || !publicKey) return setError("connect a wallet");
 
     // check on-chain name availability first
@@ -153,6 +188,13 @@ export default function Home() {
       setMinting(false);
     }
   }
+
+  const previewSocials: BizSocial[] = [];
+  if (site.trim()) previewSocials.push({ kind: "globe" });
+  if (x.trim()) previewSocials.push({ kind: "x" });
+  if (telegram.trim()) previewSocials.push({ kind: "telegram" });
+  if (previewSocials.length === 0)
+    previewSocials.push({ kind: "globe" }, { kind: "x" }, { kind: "discord" });
 
   return (
     <>
@@ -227,6 +269,7 @@ export default function Home() {
             Inscribed on Solana devnet. Forever. (v1)
           </p>
 
+          <div className="builder-grid">
           <div className="panel">
             <div className="field">
               <label>Profile picture (compressed to ~{MAX_AVATAR_BYTES / 1000}kb webp)</label>
@@ -244,7 +287,7 @@ export default function Home() {
 
             <div className="field">
               <label>
-                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp{BG_FEE_SOL > 0 ? `, +${BG_FEE_SOL} SOL` : ""})
+                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp; animated GIFs kept as-is up to {MAX_GIF_BG_BYTES / 1000}kb{BG_FEE_SOL > 0 ? `, +${BG_FEE_SOL} SOL` : ""})
               </label>
               <div className="row">
                 {bg && (
@@ -293,6 +336,24 @@ export default function Home() {
                     </button>
                   );
                 })}
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Text colors (optional, follows theme by default)</label>
+              <div className="color-row">
+                <ColorField
+                  label="Name"
+                  value={nameColor}
+                  fallback={THEMES[theme].ink}
+                  onChange={setNameColor}
+                />
+                <ColorField
+                  label="Bio"
+                  value={bioColor}
+                  fallback={THEMES[theme].ink}
+                  onChange={setBioColor}
+                />
               </div>
             </div>
 
@@ -347,7 +408,7 @@ export default function Home() {
             </div>
 
             <div className="muted" style={{ marginBottom: "1rem" }}>
-              Payload: {totalSize.toLocaleString()} / {MAX_TOTAL_BYTES.toLocaleString()} bytes.
+              Payload: {totalSize.toLocaleString()} / {totalCap.toLocaleString()} bytes{bgIsGif ? " (animated GIF background)" : ""}.
               Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
             </div>
 
@@ -374,10 +435,101 @@ export default function Home() {
               </div>
             )}
           </div>
+
+          <div className="builder-preview">
+            <div className="preview-label">Live preview</div>
+            <BusinessCard
+              handle={name || "yourname"}
+              bio={
+                (bio.trim()
+                  ? `${displayName.trim() || "Your Name"}. ${bio.trim()}`
+                  : `${displayName.trim() || "Your Name"}.`)
+              }
+              avatarSrc={avatar?.preview}
+              demoAvatar={!avatar}
+              socials={previewSocials}
+              address="PREVIEW1111111111111"
+              wallets={
+                wallets.trim()
+                  ? wallets.split(",").map((w) => w.trim()).filter(Boolean)
+                  : undefined
+              }
+              theme={theme}
+              bgSrc={bg?.preview}
+              colors={{
+                ...(nameColor ? { name: nameColor } : {}),
+                ...(bioColor ? { bio: bioColor } : {}),
+              }}
+            />
+            {!bg && (
+              <p className="muted preview-hint">
+                No background yet: card uses the theme color. Upload an image
+                or GIF to see it here.
+              </p>
+            )}
+          </div>
+          </div>
         </section>
       </main>
 
       <MarqueeBar />
     </>
+  );
+}
+
+// Preset swatches from the site palette + free picker.
+const COLOR_PRESETS = [
+  "#050505",
+  "#f8f4e9",
+  "#b7f72a",
+  "#7c57e8",
+  "#ff3131",
+  "#f2f2f8",
+];
+
+function ColorField({
+  label,
+  value,
+  fallback,
+  onChange,
+}: {
+  label: string;
+  value: string | null;
+  fallback: string;
+  onChange: (v: string | null) => void;
+}) {
+  return (
+    <div className="color-field">
+      <span className="color-field-label">{label}</span>
+      <div className="swatch-row">
+        {COLOR_PRESETS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            className={`swatch${value === c ? " selected" : ""}`}
+            style={{ background: c }}
+            title={c}
+            onClick={() => onChange(c)}
+          />
+        ))}
+        <input
+          type="color"
+          className="swatch swatch-picker"
+          value={value ?? fallback}
+          onChange={(e) => onChange(e.target.value)}
+          title="Custom color"
+        />
+        {value && (
+          <button
+            type="button"
+            className="swatch-reset"
+            onClick={() => onChange(null)}
+            title="Reset to theme default"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

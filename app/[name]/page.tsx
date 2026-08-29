@@ -23,8 +23,8 @@ export default async function CardPage({
   const data = await fetchCardByMint(entry.mint);
   if (!data) notFound();
 
-  const { card, avatarBase64, bgBase64, mint, inscription } = data;
-  const bgSrc = bgBase64 ? `data:image/webp;base64,${bgBase64}` : undefined;
+  const { card, avatarBase64, bgBase64, bgMime, mint, inscription } = data;
+  const bgSrc = bgBase64 ? `data:${bgMime};base64,${bgBase64}` : undefined;
 
   const socials: BizSocial[] = [];
   if (card.links?.site) socials.push({ kind: "globe", href: card.links.site });
@@ -61,6 +61,7 @@ export default async function CardPage({
           wallets={card.links?.wallets}
           theme={card.theme}
           bgSrc={bgSrc}
+          colors={card.colors}
         />
         <DownloadCard handle={card.name} />
         {entry.onChain && (
