@@ -13,11 +13,7 @@ export function SiteHeader({ active = "home" }: { active?: string }) {
   return (
     <header className="site-header wrap">
       <Link href="/" className="logo-link">
-        <div className="logo-block">
-          <span />
-          <span />
-          <span />
-        </div>
+        <img src="/logo.png" alt="Chaincard logo" className="logo-icon" />
         <span className="wordmark">Chaincard</span>
       </Link>
       <nav className="site-nav">

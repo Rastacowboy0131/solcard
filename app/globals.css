@@ -59,6 +59,12 @@ a { color: var(--ink); text-decoration: none; }
   flex-wrap: wrap;
 }
 .logo-link { display: flex; align-items: center; gap: 16px; }
+.logo-icon {
+  width: 68px;
+  height: 68px;
+  flex: none;
+  image-rendering: auto;
+}
 .logo-block {
   width: 78px;
   height: 68px;
