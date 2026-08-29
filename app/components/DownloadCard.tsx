@@ -13,7 +13,7 @@ export function DownloadCard({ handle }: { handle: string }) {
     try {
       // measure the true bounds including absolutely positioned stickers
       // that overflow the stage box, then pad so nothing clips
-      const pad = 60;
+      const pad = 100;
       const base = node.getBoundingClientRect();
       let top = base.top, left = base.left, right = base.right, bottom = base.bottom;
       node.querySelectorAll("*").forEach((el) => {
