@@ -11,12 +11,16 @@ export function DownloadCard({ handle }: { handle: string }) {
     if (!node || busy) return;
     setBusy(true);
     try {
-      // render at 2x for a crisp shareable image, keep stickers in frame
+      // render at 2x with breathing room so the rotated stickers
+      // that overflow the card stage aren't clipped
+      const pad = 48;
       const dataUrl = await toPng(node, {
         pixelRatio: 2,
         cacheBust: true,
         backgroundColor: "#f4efe6",
-        style: { margin: "0" },
+        width: node.offsetWidth + pad * 2,
+        height: node.offsetHeight + pad * 2,
+        style: { transform: `translate(${pad}px, ${pad}px)`, margin: "0" },
       });
       const a = document.createElement("a");
       a.href = dataUrl;
