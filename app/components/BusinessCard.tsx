@@ -188,9 +188,18 @@ export function BusinessCard({
         )}
         <hr className="biz-divider" />
         <div className="biz-foot">
-          <span className="biz-addr">
+          <button
+            type="button"
+            className="biz-addr"
+            title={address}
+            onClick={() => {
+              if (typeof navigator !== "undefined") {
+                navigator.clipboard?.writeText(address).catch(() => {});
+              }
+            }}
+          >
             CHAINCARD:{shortAddr.toUpperCase()} <CopyIcon />
-          </span>
+          </button>
           <span className="biz-minted">Minted on Solana</span>
         </div>
         <div className="biz-dots" />
