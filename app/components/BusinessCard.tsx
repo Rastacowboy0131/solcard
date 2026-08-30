@@ -166,7 +166,23 @@ export function BusinessCard({
         {wallets && wallets.length > 0 && (
           <div className="biz-wallets">
             {wallets.map((w) => (
-              <span className="wallet" key={w}>{w}</span>
+              <button
+                type="button"
+                className="wallet"
+                key={w}
+                title={w}
+                onClick={() => {
+                  if (typeof navigator !== "undefined") {
+                    navigator.clipboard?.writeText(w).catch(() => {});
+                  }
+                }}
+              >
+                <span className="wallet-chain">SOL</span>
+                <span className="wallet-addr">
+                  {w.length > 14 ? `${w.slice(0, 5)}...${w.slice(-5)}` : w}
+                </span>
+                <CopyIcon />
+              </button>
             ))}
           </div>
         )}

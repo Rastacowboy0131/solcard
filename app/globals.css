@@ -301,7 +301,7 @@ a { color: var(--ink); text-decoration: none; }
   background: var(--paper2);
   border: 6px solid var(--ink);
   box-shadow: 20px 26px 0 var(--ink);
-  padding: 42px 40px 30px;
+  padding: 42px 40px 56px;
   clip-path: polygon(26px 0, 100% 0, 100% 100%, 0 100%, 0 26px);
 }
 .biz-top { display: flex; gap: 22px; align-items: center; }
@@ -363,22 +363,39 @@ a { color: var(--ink); text-decoration: none; }
 }
 .biz-dots {
   position: absolute;
-  left: 16px;
-  bottom: 12px;
+  left: 40px;
+  bottom: 14px;
   width: 80px;
-  height: 30px;
+  height: 22px;
   background-image: radial-gradient(var(--ink) 2px, transparent 2px);
   background-size: 10px 10px;
   opacity: 0.75;
 }
-.biz-wallets { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.biz-wallets { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; }
 .biz-wallets .wallet {
-  border: 2px solid var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 2.5px solid var(--ink);
   background: var(--paper);
-  font-size: 11px;
-  padding: 6px 8px;
-  overflow-wrap: anywhere;
+  box-shadow: 4px 4px 0 var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink);
 }
+.biz-wallets .wallet:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.biz-wallets .wallet-chain {
+  background: var(--purple);
+  color: var(--paper);
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+}
+.biz-wallets .wallet-addr { white-space: nowrap; }
 
 .sticker-deleted {
   position: absolute;
