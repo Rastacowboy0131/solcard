@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   SolCard,
@@ -58,6 +58,30 @@ export default function Home() {
     null
   );
   const [takenBy, setTakenBy] = useState<string | null>(null);
+  // set when the typed handle is already registered to the connected wallet:
+  // minting then re-points the name to the new card instead of claiming.
+  const [ownedByMe, setOwnedByMe] = useState(false);
+
+  useEffect(() => {
+    setOwnedByMe(false);
+    const handle = name.toLowerCase().trim();
+    if (!handle || !NAME_RE.test(handle) || !publicKey) return;
+    let stale = false;
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/names/${handle}`);
+        if (!r.ok || stale) return;
+        const j = await r.json().catch(() => ({}));
+        if (!stale && j.owner === publicKey.toBase58()) setOwnedByMe(true);
+      } catch {
+        // ignore, mint-time check is authoritative
+      }
+    }, 500);
+    return () => {
+      stale = true;
+      clearTimeout(t);
+    };
+  }, [name, publicKey]);
 
   const buildCard = (): SolCard => ({
     v: 1,
@@ -139,18 +163,31 @@ export default function Home() {
       return setError(`payload too large (${totalSize} bytes, max ${totalCap})`);
     if (!wallet?.adapter || !publicKey) return setError("connect a wallet");
 
-    // check on-chain name availability first
+    // check on-chain name availability first. If the connected wallet
+    // already owns the name, proceed and re-point it (UpdateMint, no fee).
     setTakenBy(null);
+    let repoint = false;
     const check = await fetch(`/api/names/${card.name}`);
     if (check.ok) {
       const j = await check.json().catch(() => ({}));
-      setTakenBy(j.owner || null);
-      return setError("name already taken");
+      if (j.owner && j.owner === publicKey.toBase58()) {
+        repoint = true;
+      } else {
+        setTakenBy(j.owner || null);
+        return setError("name already taken");
+      }
     }
 
     setMinting(true);
     try {
-      const res = await mintCard(wallet.adapter, card, avatar, setStatus, bg);
+      const res = await mintCard(
+        wallet.adapter,
+        card,
+        avatar,
+        setStatus,
+        bg,
+        repoint
+      );
       setStatus("");
       setResult({ mint: res.mint, name: card.name });
     } catch (e: any) {
@@ -361,6 +398,12 @@ export default function Home() {
               />
               {name && !NAME_RE.test(name) && (
                 <div className="error">2-32 chars: a-z, 0-9, -, _</div>
+              )}
+              {ownedByMe && NAME_RE.test(name) && (
+                <div className="owned-note">
+                  ★ You own @{name}: minting will re-point your handle to this
+                  new card. The old card stays on-chain, no name fee.
+                </div>
               )}
             </div>
 

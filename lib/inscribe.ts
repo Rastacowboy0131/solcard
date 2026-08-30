@@ -46,7 +46,7 @@ import {
 } from "@metaplex-foundation/mpl-token-metadata";
 import { transferSol } from "@metaplex-foundation/mpl-toolbox";
 import { PublicKey } from "@solana/web3.js";
-import { claimIx, fetchConfig, getConnection } from "./registry";
+import { claimIx, updateMintIx, fetchConfig, getConnection } from "./registry";
 import type { SolCard } from "./card";
 
 const RPC_URL =
@@ -86,7 +86,10 @@ export async function mintCard(
   card: SolCard,
   avatar: { bytes: Uint8Array; mime: string },
   onProgress: MintProgress,
-  bg?: { bytes: Uint8Array; mime: string } | null
+  bg?: { bytes: Uint8Array; mime: string } | null,
+  // true when the connected wallet already owns this name in the registry:
+  // the final tx re-points the name PDA (UpdateMint, no fee) instead of Claim.
+  repoint?: boolean
 ): Promise<{ mint: string; inscription: string }> {
   const umi: Umi = createUmi(RPC_URL)
     .use(mplInscription())
@@ -235,15 +238,14 @@ export async function mintCard(
       : []),
   ];
 
-  // ---- Group C: registry claim ----
+  // ---- Group C: registry claim (or owner re-point, no fee) ----
+  const walletPk = new PublicKey(wallet.publicKey.toBase58());
+  const mintPk = new PublicKey(mint.publicKey.toString());
   const claimBuilder = transactionBuilder().add({
     instruction: fromWeb3JsInstruction(
-      claimIx(
-        new PublicKey(wallet.publicKey.toBase58()),
-        card.name,
-        new PublicKey(mint.publicKey.toString()),
-        new PublicKey(cfg.feeWallet)
-      )
+      repoint
+        ? updateMintIx(walletPk, card.name, mintPk)
+        : claimIx(walletPk, card.name, mintPk, new PublicKey(cfg.feeWallet))
     ),
     signers: [umi.identity],
     bytesCreatedOnChain: 0,
@@ -340,12 +342,22 @@ export async function mintCard(
     blockhash.lastValidBlockHeight = fresh.lastValidBlockHeight;
   }
 
-  // ---- Send group C: the name claim ----
-  onProgress("Claiming name on-chain...");
+  // ---- Send group C: the name claim / re-point ----
+  onProgress(
+    repoint ? "Re-pointing your name to the new card..." : "Claiming name on-chain..."
+  );
   try {
     await sendAndConfirm(umi, signedClaim, blockhash);
   } catch (e: any) {
     const msg = errMsg(e);
+    if (repoint) {
+      throw new ClaimFailedError(
+        `card minted, but re-pointing @${card.name} to it failed: ${msg}. ` +
+          `Your name still resolves to the old card; the update can be retried ` +
+          `from the owning wallet.`,
+        mint.publicKey.toString()
+      );
+    }
     if (msg.includes("already in use") || msg.includes("0x0")) {
       throw new ClaimFailedError(
         "name was claimed by someone else mid-mint (card minted, name not registered)",

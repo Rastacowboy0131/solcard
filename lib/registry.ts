@@ -118,6 +118,28 @@ export function claimIx(
   });
 }
 
+// UpdateMint instruction (tag 2): owner re-points their name PDA's mint
+// field to a new inscription mint. No fee, owner must sign.
+// Borsh layout: [2 (u8 tag)] + [name len u32 LE + name utf8 bytes] + [new_mint 32 bytes].
+export function updateMintIx(
+  owner: PublicKey,
+  name: string,
+  newMint: PublicKey
+): TransactionInstruction {
+  return new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: false },
+      { pubkey: namePda(name), isSigner: false, isWritable: true },
+    ],
+    data: Buffer.concat([
+      Buffer.from([2]),
+      encString(name.toLowerCase()),
+      newMint.toBuffer(),
+    ]),
+  });
+}
+
 function encU64(n: bigint | number) {
   const b = Buffer.alloc(8);
   b.writeBigUInt64LE(BigInt(n));
