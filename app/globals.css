@@ -200,7 +200,9 @@ a { color: var(--ink); text-decoration: none; }
   padding: 8px 22px;
   border-left: 2.5px solid var(--ink);
   min-width: 0;
+  flex: 1 1 0;
 }
+.feature > div:last-child { min-width: 0; }
 .feature:first-child { border-left: 0; padding-left: 0; }
 .feature-icon {
   width: 58px;
@@ -214,10 +216,11 @@ a { color: var(--ink); text-decoration: none; }
 }
 .feature h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: clamp(12px, 1.15vw, 16px);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 .feature p { margin: 4px 0 0; font-size: 13px; }
 
