@@ -13,6 +13,7 @@
 //   Group C: the registry name-claim tx, sent after writes confirm.
 
 import { WalletAdapter } from "@solana/wallet-adapter-base";
+import { withRetry429 as sharedWithRetry429 } from "./rpc";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import {
   generateSigner,
@@ -392,7 +393,6 @@ function chunkJobs(
 const SEND_CONCURRENCY = 4; // parallel sends per batch
 const BATCH_DELAY_MS = 400; // pause between send batches
 const STATUS_POLL_MS = 2000; // getSignatureStatuses poll interval
-const MAX_RETRIES = 5;
 
 let rpcProgress: MintProgress | null = null;
 
@@ -400,37 +400,9 @@ function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function is429(e: any): boolean {
-  const m = errMsg(e).toLowerCase();
-  return (
-    m.includes("429") ||
-    m.includes("rate limit") ||
-    m.includes("rate limits exceeded") ||
-    m.includes("too many requests")
-  );
-}
-
-/** Retry fn on 429 with exponential backoff + jitter: ~1s, 2s, 4s, 8s cap. */
-async function withRetry429<T>(fn: () => Promise<T>): Promise<T> {
-  let lastErr: any;
-  for (let i = 0; i < MAX_RETRIES; i++) {
-    try {
-      return await fn();
-    } catch (e: any) {
-      if (!is429(e)) throw e;
-      lastErr = e;
-      if (i === MAX_RETRIES - 1) break;
-      const backoff = Math.min(1000 * 2 ** i, 8000);
-      const wait = backoff + Math.floor(Math.random() * 400);
-      rpcProgress?.(
-        "Devnet RPC is rate limiting, retrying in " +
-          Math.round(wait / 1000) +
-          "s..."
-      );
-      await sleep(wait);
-    }
-  }
-  throw lastErr;
+/** Retry fn on 429 with backoff, reporting waits to the mint progress line. */
+function withRetry429<T>(fn: () => Promise<T>): Promise<T> {
+  return sharedWithRetry429(fn, (msg) => rpcProgress?.(msg));
 }
 
 async function sendAndConfirm(

@@ -58,7 +58,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
 
   async function run(
     label: string,
-    fn: () => Promise<{ signature: string }>,
+    fn: (onProgress: (msg: string) => void) => Promise<{ signature: string }>,
     doneMsg: string
   ) {
     if (!wallet?.adapter) return;
@@ -67,7 +67,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
     setSuccess(null);
     setStatus(`${label}: confirm in wallet, then waiting for devnet...`);
     try {
-      const { signature } = await fn();
+      const { signature } = await fn((msg) => setStatus(msg));
       setStatus("");
       setSuccess({ msg: doneMsg, sig: signature });
       setPrice("");
@@ -86,7 +86,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
       return setError("enter a price in SOL greater than 0");
     run(
       "list",
-      () => listNameOnChain(wallet!.adapter, name, Math.round(sol * 1e9)),
+      (p) => listNameOnChain(wallet!.adapter, name, Math.round(sol * 1e9), p),
       `listed ${name}.sol for ${sol} SOL`
     );
   }
@@ -94,7 +94,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
   function onDelist() {
     run(
       "delist",
-      () => delistNameOnChain(wallet!.adapter, name),
+      (p) => delistNameOnChain(wallet!.adapter, name, p),
       `delisted ${name}.sol`
     );
   }
@@ -102,7 +102,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
   function onBuy() {
     run(
       "buy",
-      () => buyNameOnChain(wallet!.adapter, name),
+      (p) => buyNameOnChain(wallet!.adapter, name, p),
       `bought ${name}.sol for ${formatSol(live.listingPrice)} SOL`
     );
   }

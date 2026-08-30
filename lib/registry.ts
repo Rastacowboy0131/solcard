@@ -7,6 +7,7 @@ import {
   SystemProgram,
   TransactionInstruction,
 } from "@solana/web3.js";
+import { withRetry429 } from "./rpc";
 
 export const PROGRAM_ID = new PublicKey(
   process.env.NEXT_PUBLIC_REGISTRY_PROGRAM_ID ||
@@ -67,7 +68,7 @@ export async function fetchNameRecord(
   conn: Connection,
   name: string
 ): Promise<NameRecord | null> {
-  const info = await conn.getAccountInfo(namePda(name));
+  const info = await withRetry429(() => conn.getAccountInfo(namePda(name)));
   if (!info) return null;
   return decodeNameRecord(info.data);
 }
@@ -76,7 +77,7 @@ export async function fetchNameRecord(
 export async function fetchConfig(
   conn: Connection
 ): Promise<RegistryConfig | null> {
-  const info = await conn.getAccountInfo(configPda());
+  const info = await withRetry429(() => conn.getAccountInfo(configPda()));
   if (!info || info.data.length < 72) return null;
   const buf = Buffer.from(info.data);
   return {
@@ -199,12 +200,14 @@ export type Listing = {
 // ListName instruction data in its recent transaction history, then
 // verified by re-deriving the PDA from the candidate name.
 export async function fetchListings(conn: Connection): Promise<Listing[]> {
-  const accounts = await conn.getProgramAccounts(PROGRAM_ID, {
-    filters: [
-      { dataSize: 113 },
-      { memcmp: { offset: 72, bytes: "2" } }, // base58(0x01) = "2"
-    ],
-  });
+  const accounts = await withRetry429(() =>
+    conn.getProgramAccounts(PROGRAM_ID, {
+      filters: [
+        { dataSize: 113 },
+        { memcmp: { offset: 72, bytes: "2" } }, // base58(0x01) = "2"
+      ],
+    })
+  );
   const out: Listing[] = [];
   for (const { pubkey, account } of accounts) {
     const rec = decodeNameRecord(account.data);
@@ -238,12 +241,14 @@ export async function fetchNamesByOwner(
   conn: Connection,
   owner: PublicKey
 ): Promise<OwnedName[]> {
-  const accounts = await conn.getProgramAccounts(PROGRAM_ID, {
-    filters: [
-      { dataSize: 113 },
-      { memcmp: { offset: 0, bytes: owner.toBase58() } },
-    ],
-  });
+  const accounts = await withRetry429(() =>
+    conn.getProgramAccounts(PROGRAM_ID, {
+      filters: [
+        { dataSize: 113 },
+        { memcmp: { offset: 0, bytes: owner.toBase58() } },
+      ],
+    })
+  );
   const out: OwnedName[] = [];
   for (const { pubkey, account } of accounts) {
     const rec = decodeNameRecord(account.data);
@@ -269,12 +274,16 @@ async function resolveNameFromHistory(
   conn: Connection,
   pda: PublicKey
 ): Promise<string | null> {
-  const sigs = await conn.getSignaturesForAddress(pda, { limit: 10 });
+  const sigs = await withRetry429(() =>
+    conn.getSignaturesForAddress(pda, { limit: 10 })
+  );
   for (const s of sigs) {
     if (s.err) continue;
-    const tx = await conn.getTransaction(s.signature, {
-      maxSupportedTransactionVersion: 0,
-    });
+    const tx = await withRetry429(() =>
+      conn.getTransaction(s.signature, {
+        maxSupportedTransactionVersion: 0,
+      })
+    );
     if (!tx) continue;
     const msg = tx.transaction.message;
     const keys = msg.staticAccountKeys ?? (msg as any).accountKeys;

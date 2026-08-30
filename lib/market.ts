@@ -14,34 +14,47 @@ import {
   getConnection,
   listIx,
 } from "./registry";
+import { friendlyRpcError, withRetry429, RetryProgress } from "./rpc";
 
 async function sendIxs(
   wallet: WalletAdapter,
   ixs: TransactionInstruction[],
-  label: string
+  label: string,
+  onProgress?: RetryProgress
 ): Promise<string> {
   if (!wallet.publicKey) throw new Error("wallet not connected");
   const conn = getConnection();
   const tx = new Transaction().add(...ixs);
   tx.feePayer = wallet.publicKey;
-  const { blockhash, lastValidBlockHeight } =
-    await conn.getLatestBlockhash("confirmed");
-  tx.recentBlockhash = blockhash;
-  const signature = await wallet.sendTransaction(tx, conn);
-  const res = await conn.confirmTransaction(
-    { signature, blockhash, lastValidBlockHeight },
-    "confirmed"
-  );
-  if (res.value.err) {
-    throw new Error(`${label} tx failed: ${JSON.stringify(res.value.err)}`);
+  try {
+    const { blockhash, lastValidBlockHeight } = await withRetry429(
+      () => conn.getLatestBlockhash("confirmed"),
+      onProgress
+    );
+    tx.recentBlockhash = blockhash;
+    const signature = await wallet.sendTransaction(tx, conn);
+    const res = await withRetry429(
+      () =>
+        conn.confirmTransaction(
+          { signature, blockhash, lastValidBlockHeight },
+          "confirmed"
+        ),
+      onProgress
+    );
+    if (res.value.err) {
+      throw new Error(`${label} tx failed: ${JSON.stringify(res.value.err)}`);
+    }
+    return signature;
+  } catch (e: any) {
+    throw new Error(friendlyRpcError(e, label));
   }
-  return signature;
 }
 
 export async function listNameOnChain(
   wallet: WalletAdapter,
   name: string,
-  priceLamports: number
+  priceLamports: number,
+  onProgress?: RetryProgress
 ): Promise<{ signature: string }> {
   if (!wallet.publicKey) throw new Error("wallet not connected");
   if (!Number.isFinite(priceLamports) || priceLamports <= 0)
@@ -49,20 +62,23 @@ export async function listNameOnChain(
   const signature = await sendIxs(
     wallet,
     [listIx(wallet.publicKey, name, Math.floor(priceLamports))],
-    "list"
+    "list",
+    onProgress
   );
   return { signature };
 }
 
 export async function delistNameOnChain(
   wallet: WalletAdapter,
-  name: string
+  name: string,
+  onProgress?: RetryProgress
 ): Promise<{ signature: string }> {
   if (!wallet.publicKey) throw new Error("wallet not connected");
   const signature = await sendIxs(
     wallet,
     [delistIx(wallet.publicKey, name)],
-    "delist"
+    "delist",
+    onProgress
   );
   return { signature };
 }
@@ -71,14 +87,20 @@ export async function delistNameOnChain(
 // the live on-chain price (front-run protection is enforced by the program).
 export async function buyNameOnChain(
   wallet: WalletAdapter,
-  name: string
+  name: string,
+  onProgress?: RetryProgress
 ): Promise<{ signature: string; pricePaid: number }> {
   if (!wallet.publicKey) throw new Error("wallet not connected");
   const conn = getConnection();
-  const [rec, cfg] = await Promise.all([
-    fetchNameRecord(conn, name),
-    fetchConfig(conn),
-  ]);
+  let rec, cfg;
+  try {
+    [rec, cfg] = await Promise.all([
+      fetchNameRecord(conn, name),
+      fetchConfig(conn),
+    ]);
+  } catch (e: any) {
+    throw new Error(friendlyRpcError(e, "buy"));
+  }
   if (!rec) throw new Error("name not found on-chain");
   if (rec.listingState !== 1) throw new Error("this name is not listed");
   if (!cfg) throw new Error("registry config not found on this cluster");
@@ -96,7 +118,8 @@ export async function buyNameOnChain(
         new PublicKey(cfg.feeWallet)
       ),
     ],
-    "buy"
+    "buy",
+    onProgress
   );
   return { signature, pricePaid: rec.listingPrice };
 }
