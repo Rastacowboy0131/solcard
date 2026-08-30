@@ -301,7 +301,7 @@ a { color: var(--ink); text-decoration: none; }
   background: var(--paper2);
   border: 6px solid var(--ink);
   box-shadow: 20px 26px 0 var(--ink);
-  padding: 42px 40px 56px;
+  padding: 42px 40px 26px;
   clip-path: polygon(26px 0, 100% 0, 100% 100%, 0 100%, 0 26px);
 }
 .biz-top { display: flex; gap: 22px; align-items: center; }
@@ -370,9 +370,7 @@ a { color: var(--ink); text-decoration: none; }
   text-transform: uppercase;
 }
 .biz-dots {
-  position: absolute;
-  left: 40px;
-  bottom: 4px;
+  margin-top: 12px;
   width: 80px;
   height: 16px;
   pointer-events: none;
