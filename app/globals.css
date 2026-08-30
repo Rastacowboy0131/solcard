@@ -835,4 +835,6 @@ html, body { overflow-x: clip; }
 .hit-name { font-weight: 700; }
 @media (max-width: 600px) {
   .card-search-row { flex-direction: column; }
+  .card-search-hit { flex-direction: column; gap: 4px; }
 }
+.card-search-input { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
