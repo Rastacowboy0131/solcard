@@ -222,6 +222,46 @@ export async function fetchListings(conn: Connection): Promise<Listing[]> {
   return out;
 }
 
+export type OwnedName = {
+  name: string;
+  owner: string;
+  mint: string;
+  ts: number;
+  listingState: number;
+  listingPrice: number;
+};
+
+// All name PDAs owned by a wallet: memcmp on owner at offset 0 across the
+// fixed-size (113 byte) name accounts, then recover each name from tx
+// history (the PDA data does not store the name, only the seeds do).
+export async function fetchNamesByOwner(
+  conn: Connection,
+  owner: PublicKey
+): Promise<OwnedName[]> {
+  const accounts = await conn.getProgramAccounts(PROGRAM_ID, {
+    filters: [
+      { dataSize: 113 },
+      { memcmp: { offset: 0, bytes: owner.toBase58() } },
+    ],
+  });
+  const out: OwnedName[] = [];
+  for (const { pubkey, account } of accounts) {
+    const rec = decodeNameRecord(account.data);
+    if (!rec) continue;
+    const name = await resolveNameFromHistory(conn, pubkey);
+    if (!name) continue;
+    out.push({
+      name,
+      owner: rec.owner,
+      mint: rec.mint,
+      ts: rec.ts,
+      listingState: rec.listingState,
+      listingPrice: rec.listingPrice,
+    });
+  }
+  return out;
+}
+
 // Walk the PDA's recent signatures, find a registry instruction whose data
 // carries the name string (tags 1 claim, 2 update, 6 list, 7 delist, 8 buy)
 // and verify by re-deriving the PDA.

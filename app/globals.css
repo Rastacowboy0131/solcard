@@ -805,3 +805,34 @@ html, body { overflow-x: clip; }
 @media (max-width: 640px) {
   .site-nav { flex-wrap: wrap; gap: 4px; }
 }
+
+/* ============ Card search ============ */
+.card-search-panel { max-width: 640px; margin: 0 auto; }
+.card-search-row { display: flex; gap: 12px; align-items: stretch; }
+.card-search-input {
+  flex: 1;
+  border: 3px solid var(--ink);
+  padding: 12px 14px;
+  font: inherit;
+  background: var(--paper2);
+}
+.card-search-input:focus { outline: none; box-shadow: 4px 4px 0 var(--ink); }
+.card-search-msg { margin-top: 14px; }
+.card-search-results { list-style: none; padding: 0; margin: 16px 0 0; }
+.card-search-hit {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 3px solid var(--ink);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: inherit;
+  background: var(--paper2);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.card-search-hit:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+.hit-name { font-weight: 700; }
+@media (max-width: 600px) {
+  .card-search-row { flex-direction: column; }
+}

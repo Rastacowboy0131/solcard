@@ -4,7 +4,13 @@
 
 import { promises as fs } from "fs";
 import path from "path";
-import { getConnection, fetchNameRecord } from "./registry";
+import { PublicKey } from "@solana/web3.js";
+import {
+  getConnection,
+  fetchNameRecord,
+  fetchNamesByOwner,
+  OwnedName,
+} from "./registry";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FILE = path.join(DATA_DIR, "names.json");
@@ -49,4 +55,33 @@ export async function lookupName(name: string): Promise<NameEntry | null> {
   return entry
     ? { ...entry, onChain: false, listingState: 0, listingPrice: 0 }
     : null;
+}
+
+// All chaincards owned by a wallet. On-chain registry first; the json
+// fallback covers pre-program names during the migration window.
+export async function lookupByOwner(wallet: string): Promise<OwnedName[]> {
+  let owner: PublicKey;
+  try {
+    owner = new PublicKey(wallet);
+  } catch {
+    return [];
+  }
+  try {
+    const found = await fetchNamesByOwner(getConnection(), owner);
+    if (found.length > 0) return found;
+  } catch {
+    // RPC hiccup: fall through to json fallback
+  }
+  const idx = await loadJsonFallback();
+  const key = owner.toBase58();
+  return Object.entries(idx)
+    .filter(([, v]) => v.owner === key)
+    .map(([name, v]) => ({
+      name,
+      owner: v.owner,
+      mint: v.mint,
+      ts: v.ts,
+      listingState: 0,
+      listingPrice: 0,
+    }));
 }
