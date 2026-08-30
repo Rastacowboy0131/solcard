@@ -328,7 +328,7 @@ export default function Home() {
                     <button
                       key={id}
                       type="button"
-                      className={`theme-chip${theme === id ? " selected" : ""}`}
+                      className={`theme-chip${theme === id ? " selected" : ""}${t.premium ? " premium" : ""}`}
                       onClick={() => setTheme(id)}
                       title={t.label}
                       style={{ background: t.card, color: t.ink, borderColor: t.ink }}
@@ -339,6 +339,7 @@ export default function Home() {
                         <i style={{ background: t.page }} />
                       </span>
                       <span className="chip-label">{t.label}</span>
+                      {t.premium && <span className="chip-premium">PREMIUM</span>}
                     </button>
                   );
                 })}

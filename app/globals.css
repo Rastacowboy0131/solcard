@@ -518,6 +518,19 @@ a { color: var(--ink); text-decoration: none; }
   text-align: left;
 }
 .theme-chip:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--ink); }
+.theme-chip.premium { width: 86px; }
+.chip-premium {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 1px 4px 1px 5px;
+  background: var(--ink);
+  color: var(--paper2, #fff);
+  clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%);
+}
 .theme-chip.selected {
   outline: 4px solid var(--ink);
   outline-offset: 2px;

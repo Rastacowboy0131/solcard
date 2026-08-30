@@ -23,7 +23,24 @@ export type CardTheme = {
   minted: string;
   /** sticker outline ring */
   stickerOutline: string;
+  /** premium theme: will be token-gated later */
+  premium?: boolean;
 };
+
+/**
+ * Single gating point for premium themes.
+ * Later: flip to false and check token balance where isPremiumUnlocked is called.
+ */
+export const PREMIUM_UNLOCKED = true;
+
+export function isPremium(id?: string): boolean {
+  return !!THEMES[id ?? ""]?.premium;
+}
+
+/** The one place to wire a token-balance check later. */
+export function isPremiumUnlocked(_wallet?: string): boolean {
+  return PREMIUM_UNLOCKED;
+}
 
 export const THEMES: Record<string, CardTheme> = {
   paper: {
@@ -85,6 +102,71 @@ export const THEMES: Record<string, CardTheme> = {
     accent2Text: "#f3e6e0",
     minted: "#ff3131",
     stickerOutline: "#000000",
+  },
+  gold: {
+    id: "gold",
+    label: "Gold Foil",
+    page: "#1c1206",
+    card: "#2a1c0a",
+    ink: "#f4e5c3",
+    accent: "#e8b923",
+    accent2: "#8a6a1f",
+    accent2Text: "#fdf6e3",
+    minted: "#e8b923",
+    stickerOutline: "#0d0802",
+    premium: true,
+  },
+  holo: {
+    id: "holo",
+    label: "Holo",
+    page: "#e8e4f4",
+    card: "#f6f3fc",
+    ink: "#1c1430",
+    accent: "#7df9d4",
+    accent2: "#c9a5f5",
+    accent2Text: "#1c1430",
+    minted: "#8f6fd8",
+    stickerOutline: "#ffffff",
+    premium: true,
+  },
+  terminal: {
+    id: "terminal",
+    label: "Terminal",
+    page: "#020703",
+    card: "#04120a",
+    ink: "#33ff66",
+    accent: "#0aff9d",
+    accent2: "#053321",
+    accent2Text: "#33ff66",
+    minted: "#0aff9d",
+    stickerOutline: "#000000",
+    premium: true,
+  },
+  cobalt: {
+    id: "cobalt",
+    label: "Cobalt",
+    page: "#050a1c",
+    card: "#0b1332",
+    ink: "#e6ecff",
+    accent: "#2e7bff",
+    accent2: "#12204d",
+    accent2Text: "#e6ecff",
+    minted: "#5c9bff",
+    stickerOutline: "#02040c",
+    premium: true,
+  },
+  phantom: {
+    id: "phantom",
+    label: "Phantom",
+    page: "#0d0a14",
+    card: "#171122",
+    ink: "#efe9ff",
+    accent: "#ab9ff2",
+    accent2: "#2b2140",
+    accent2Text: "#efe9ff",
+    minted: "#ab9ff2",
+    stickerOutline: "#050308",
+    premium: true,
   },
 };
 
