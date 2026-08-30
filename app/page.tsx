@@ -261,7 +261,6 @@ export default function Home() {
             address="7XK3mockmockmockQ9ZF"
             demoAvatar
             theme={theme}
-            bgSrc={bg?.preview}
           />
         </section>
 
