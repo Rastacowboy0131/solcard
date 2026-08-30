@@ -52,6 +52,9 @@ import type { SolCard } from "./card";
 const RPC_URL =
   process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 const FEE_WALLET = process.env.NEXT_PUBLIC_FEE_WALLET || "";
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://solcard-74l3.onrender.com"
+).replace(/\/+$/, "");
 const FEE_SOL = Number(process.env.NEXT_PUBLIC_FEE_SOL || "0.15");
 // extra fee when a custom background image is inscribed (env-tunable)
 export const BG_FEE_SOL = Number(process.env.NEXT_PUBLIC_BG_FEE_SOL || "0");
@@ -90,7 +93,18 @@ export async function mintCard(
     .use(mplTokenMetadata())
     .use(walletAdapterIdentity(wallet));
 
-  const jsonBytes = new TextEncoder().encode(JSON.stringify(card));
+  // Inscribed JSON: the card data plus standard NFT metadata fields so
+  // wallets/marketplaces that read the inscription can link back to the
+  // live card page. Extra fields are ignored by the card renderer.
+  const cardJson = {
+    ...card,
+    description:
+      card.bio && card.bio.trim().length > 0
+        ? card.bio
+        : `Chaincard: @${card.name}, an on-chain profile card inscribed on Solana.`,
+    external_url: `${SITE_URL}/${card.name}`,
+  };
+  const jsonBytes = new TextEncoder().encode(JSON.stringify(cardJson));
 
   onProgress("Preparing transactions...");
 
