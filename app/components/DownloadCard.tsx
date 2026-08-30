@@ -10,6 +10,7 @@ export function DownloadCard({ handle }: { handle: string }) {
     const node = document.querySelector<HTMLElement>(".card-stage");
     if (!node || busy) return;
     setBusy(true);
+    node.classList.add("capture-mode");
     try {
       // measure the true bounds including absolutely positioned stickers
       // that overflow the stage box, then pad so nothing clips
@@ -44,6 +45,7 @@ export function DownloadCard({ handle }: { handle: string }) {
     } catch (e) {
       console.error("card download failed", e);
     } finally {
+      node.classList.remove("capture-mode");
       setBusy(false);
     }
   }

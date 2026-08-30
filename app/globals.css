@@ -226,6 +226,68 @@ a { color: var(--ink); text-decoration: none; }
 
 /* ============ Business card component ============ */
 .card-stage { position: relative; padding: 44px 36px 44px 0; align-self: center; color: var(--ink); }
+
+/* ============ Card motion (pure presentation) ============ */
+.card-tilt {
+  transition: transform 0.18s ease-out;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.card-stage .biz-card {
+  animation: card-enter 0.55s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+/* gentle drift on uploaded bg image */
+.card-face-bg img {
+  animation: bg-drift 18s ease-in-out infinite alternate;
+}
+@keyframes bg-drift {
+  from { transform: scale(1.04) translate(-0.6%, -0.6%); }
+  to { transform: scale(1.04) translate(0.6%, 0.6%); }
+}
+/* premium: border shimmer sweep across the card face */
+.premium-theme .biz-card::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 58%
+  );
+  background-size: 260% 100%;
+  animation: foil-sweep 5.5s ease-in-out infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes foil-sweep {
+  0% { background-position: 130% 0; }
+  55% { background-position: -30% 0; }
+  100% { background-position: -30% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-stage .biz-card,
+  .card-face-bg img,
+  .premium-theme .biz-card::after {
+    animation: none !important;
+  }
+  .card-tilt { transition: none; }
+}
+/* capture mode: freeze all motion so PNG export layout is exact */
+.card-stage.capture-mode,
+.card-stage.capture-mode *,
+.card-stage.capture-mode *::after,
+.card-stage.capture-mode *::before {
+  animation: none !important;
+  transition: none !important;
+}
+.card-stage.capture-mode .card-tilt { transform: none !important; }
+.card-stage.capture-mode .biz-card::after { display: none !important; }
 .card-face-bg {
   position: absolute;
   inset: 0;

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   GlobeIcon,
   XIcon,
@@ -11,7 +13,8 @@ import {
   PixelApe,
 } from "./icons";
 import type { CSSProperties } from "react";
-import { themeVars, getTheme } from "../../lib/themes";
+import { useRef, useCallback } from "react";
+import { themeVars, getTheme, isPremium } from "../../lib/themes";
 import type { CardColors } from "../../lib/card";
 
 export type BizSocial = {
@@ -62,11 +65,39 @@ export function BusinessCard({
       ? `${address.slice(0, 4)}...${address.slice(-4)}`
       : address;
 
+  const premium = isPremium(theme);
+  const tiltRef = useRef<HTMLDivElement>(null);
+
+  const onTiltMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = tiltRef.current;
+    if (!el) return;
+    if (typeof window !== "undefined") {
+      if (!window.matchMedia("(pointer: fine)").matches) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    }
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    const max = 3.5; // degrees, keep it subtle
+    el.style.transform = `perspective(1100px) rotateX(${(-py * max).toFixed(2)}deg) rotateY(${(px * max).toFixed(2)}deg)`;
+  }, []);
+
+  const onTiltLeave = useCallback(() => {
+    const el = tiltRef.current;
+    if (el) el.style.transform = "";
+  }, []);
+
   return (
     <div
-      className={`card-stage${bgSrc ? " has-bg" : ""}`}
+      className={`card-stage${bgSrc ? " has-bg" : ""}${premium ? " premium-theme" : ""}`}
       style={themeVars(theme)}
     >
+      <div
+        className="card-tilt"
+        ref={tiltRef}
+        onMouseMove={onTiltMove}
+        onMouseLeave={onTiltLeave}
+      >
       <div
         className="biz-card"
         style={
@@ -147,6 +178,7 @@ export function BusinessCard({
           <span className="biz-minted">Minted on Solana</span>
         </div>
         <div className="biz-dots" />
+      </div>
       </div>
     </div>
   );
