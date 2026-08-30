@@ -7,9 +7,7 @@ import {
   validateCard,
   MAX_AVATAR_BYTES,
   MAX_BG_BYTES,
-  MAX_GIF_BG_BYTES,
   MAX_TOTAL_BYTES,
-  MAX_TOTAL_BYTES_GIF,
   NAME_RE,
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
@@ -86,8 +84,7 @@ export default function Home() {
       : {}),
   });
 
-  const bgIsGif = bg?.mime === "image/gif";
-  const totalCap = bgIsGif ? MAX_TOTAL_BYTES_GIF : MAX_TOTAL_BYTES;
+  const totalCap = MAX_TOTAL_BYTES;
 
   const jsonSize = new TextEncoder().encode(JSON.stringify(buildCard())).length;
   const totalSize =
@@ -111,22 +108,7 @@ export default function Home() {
       if (!f) return;
       try {
         if (f.type === "image/gif") {
-          // Animated GIF: recompressing through canvas would freeze the
-          // animation, so keep the original bytes and enforce a hard cap.
-          if (f.size > MAX_GIF_BG_BYTES) {
-            setError(
-              `GIF too large: ${(f.size / 1000).toFixed(0)}kb, max ${
-                MAX_GIF_BG_BYTES / 1000
-              }kb. Animated GIFs are stored as-is on-chain, try a smaller or shorter one.`
-            );
-            return;
-          }
-          const bytes = new Uint8Array(await f.arrayBuffer());
-          setBg({
-            bytes,
-            mime: "image/gif",
-            preview: URL.createObjectURL(f),
-          });
+          setError("GIFs aren't supported as backgrounds, use a png or jpg.");
           return;
         }
         // Budget: json + avatar + bg must stay under MAX_TOTAL_BYTES.
@@ -292,7 +274,7 @@ export default function Home() {
 
             <div className="field">
               <label>
-                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp; animated GIFs kept as-is up to {MAX_GIF_BG_BYTES / 1000}kb{BG_FEE_SOL > 0 ? `, +${BG_FEE_SOL} SOL` : ""})
+                Background image (optional, compressed to ~{MAX_BG_BYTES / 1000}kb webp{BG_FEE_SOL > 0 ? `, +${BG_FEE_SOL} SOL` : ""})
               </label>
               <div className="row">
                 {bg && (
@@ -420,7 +402,7 @@ export default function Home() {
             </div>
 
             <div className="muted" style={{ marginBottom: "1rem" }}>
-              Payload: {totalSize.toLocaleString()} / {totalCap.toLocaleString()} bytes{bgIsGif ? " (animated GIF background)" : ""}.
+              Payload: {totalSize.toLocaleString()} / {totalCap.toLocaleString()} bytes.
               Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
             </div>
 
@@ -477,7 +459,7 @@ export default function Home() {
             {!bg && (
               <p className="muted preview-hint">
                 No background yet: card uses the theme color. Upload an image
-                or GIF to see it here.
+                to see it here.
               </p>
             )}
           </div>
