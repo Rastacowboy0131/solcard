@@ -372,9 +372,9 @@ a { color: var(--ink); text-decoration: none; }
 .biz-dots {
   position: absolute;
   left: 40px;
-  bottom: 14px;
+  bottom: 4px;
   width: 80px;
-  height: 22px;
+  height: 16px;
   pointer-events: none;
   background-image: radial-gradient(var(--ink) 2px, transparent 2px);
   background-size: 10px 10px;
