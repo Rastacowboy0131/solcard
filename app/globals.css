@@ -240,14 +240,6 @@ a { color: var(--ink); text-decoration: none; }
   from { opacity: 0; transform: translateY(18px) scale(0.985); }
   to { opacity: 1; transform: none; }
 }
-/* gentle drift on uploaded bg image */
-.card-face-bg img {
-  animation: bg-drift 18s ease-in-out infinite alternate;
-}
-@keyframes bg-drift {
-  from { transform: scale(1.04) translate(-0.6%, -0.6%); }
-  to { transform: scale(1.04) translate(0.6%, 0.6%); }
-}
 /* premium: border shimmer sweep across the card face */
 .premium-theme .biz-card::after {
   content: "";
