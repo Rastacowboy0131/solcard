@@ -226,15 +226,13 @@ a { color: var(--ink); text-decoration: none; }
 
 /* ============ Business card component ============ */
 .card-stage { position: relative; padding: 44px 36px 44px 0; align-self: center; color: var(--ink); }
-.card-stage.has-bg { padding: 44px 36px; }
-.card-bg {
+.card-face-bg {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  border: 4px solid var(--ink);
   z-index: 0;
+  pointer-events: none;
 }
-.card-bg img {
+.card-face-bg img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -242,10 +240,8 @@ a { color: var(--ink); text-decoration: none; }
   object-fit: cover;
   object-position: center;
 }
-.card-bg-tint { position: absolute; inset: 0; }
-.card-stage.has-bg > .biz-card,
-.card-stage.has-bg > .sticker-deleted,
-.card-stage.has-bg > .sticker-onchain { z-index: 1; }
+.card-face-tint { position: absolute; inset: 0; }
+.biz-card > *:not(.card-face-bg) { position: relative; z-index: 1; }
 .biz-card {
   position: relative;
   background: var(--paper2);

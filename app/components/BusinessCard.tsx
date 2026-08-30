@@ -67,15 +67,6 @@ export function BusinessCard({
       className={`card-stage${bgSrc ? " has-bg" : ""}`}
       style={themeVars(theme)}
     >
-      {bgSrc && (
-        <div className="card-bg" aria-hidden>
-          <img src={bgSrc} alt="" />
-          <div
-            className="card-bg-tint"
-            style={{ background: getTheme(theme).page, opacity: 0.8 }}
-          />
-        </div>
-      )}
       <div
         className="biz-card"
         style={
@@ -84,6 +75,15 @@ export function BusinessCard({
             : undefined
         }
       >
+        {bgSrc && (
+          <div className="card-face-bg" aria-hidden>
+            <img src={bgSrc} alt="" />
+            <div
+              className="card-face-tint"
+              style={{ background: getTheme(theme).page, opacity: 0.8 }}
+            />
+          </div>
+        )}
         <div className="biz-top">
           <div className="biz-avatar">
             {avatarSrc ? (
