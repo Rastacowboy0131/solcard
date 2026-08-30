@@ -262,6 +262,9 @@ export async function mintCard(
   );
   const signedClaim = signed[signed.length - 1];
 
+  // Progress callback for throttle/retry status lines.
+  rpcProgress = onProgress;
+
   // ---- Send group A sequentially, confirming each ----
   const stageNames = [
     "NFT create/mint",
@@ -281,20 +284,24 @@ export async function mintCard(
     }
   }
 
-  // ---- Send group B in parallel, retry failures ----
-  onProgress(`Writing ${writeJobs.length} data chunks in parallel...`);
+  // ---- Send group B in throttled batches, retry failures ----
+  onProgress(`Writing ${writeJobs.length} data chunks...`);
   let pending = signedWrites.map((tx, i) => ({ tx, job: writeJobs[i] }));
   let attempt = 0;
   while (pending.length > 0) {
-    const results = await Promise.allSettled(
-      pending.map((p) => sendAndConfirm(umi, p.tx, blockhash))
+    const results = await sendBatchAndConfirm(
+      umi,
+      pending.map((p) => p.tx),
+      blockhash,
+      onProgress
     );
     const failed = pending.filter((_, i) => results[i].status === "rejected");
     if (failed.length === 0) break;
     attempt++;
     if (attempt > 2) {
       const first = results.find(
-        (r): r is PromiseRejectedResult => r.status === "rejected"
+        (r): r is { status: "rejected"; reason: any } =>
+          r.status === "rejected"
       );
       throw new Error(
         `mint incomplete: ${failed.length} data chunk(s) failed after retries ` +
@@ -380,22 +387,188 @@ function chunkJobs(
   return jobs;
 }
 
+// ---- RPC throttling and 429-aware retry ----
+
+const SEND_CONCURRENCY = 4; // parallel sends per batch
+const BATCH_DELAY_MS = 400; // pause between send batches
+const STATUS_POLL_MS = 2000; // getSignatureStatuses poll interval
+const MAX_RETRIES = 5;
+
+let rpcProgress: MintProgress | null = null;
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function is429(e: any): boolean {
+  const m = errMsg(e).toLowerCase();
+  return (
+    m.includes("429") ||
+    m.includes("rate limit") ||
+    m.includes("rate limits exceeded") ||
+    m.includes("too many requests")
+  );
+}
+
+/** Retry fn on 429 with exponential backoff + jitter: ~1s, 2s, 4s, 8s cap. */
+async function withRetry429<T>(fn: () => Promise<T>): Promise<T> {
+  let lastErr: any;
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      if (!is429(e)) throw e;
+      lastErr = e;
+      if (i === MAX_RETRIES - 1) break;
+      const backoff = Math.min(1000 * 2 ** i, 8000);
+      const wait = backoff + Math.floor(Math.random() * 400);
+      rpcProgress?.(
+        "Devnet RPC is rate limiting, retrying in " +
+          Math.round(wait / 1000) +
+          "s..."
+      );
+      await sleep(wait);
+    }
+  }
+  throw lastErr;
+}
+
 async function sendAndConfirm(
   umi: Umi,
   tx: UmiTransaction,
   blockhash: BlockhashWithExpiryBlockHeight
 ) {
-  const signature = await umi.rpc.sendTransaction(tx, {
-    commitment: "confirmed",
-  });
-  const res = await umi.rpc.confirmTransaction(signature, {
-    strategy: { type: "blockhash", ...blockhash },
-    commitment: "confirmed",
-  });
+  const signature = await withRetry429(() =>
+    umi.rpc.sendTransaction(tx, { commitment: "confirmed" })
+  );
+  const res = await withRetry429(() =>
+    umi.rpc.confirmTransaction(signature, {
+      strategy: { type: "blockhash", ...blockhash },
+      commitment: "confirmed",
+    })
+  );
   if (res.value.err) {
     throw new Error(`transaction failed: ${JSON.stringify(res.value.err)}`);
   }
   return signature;
+}
+
+type SettledLike =
+  | { status: "fulfilled" }
+  | { status: "rejected"; reason: any };
+
+/**
+ * Send many pre-signed txs in small throttled batches, then confirm them
+ * all with batched getSignatureStatuses polling (low RPC pressure).
+ * Returns one settled-like result per input tx, in order.
+ */
+async function sendBatchAndConfirm(
+  umi: Umi,
+  txs: UmiTransaction[],
+  blockhash: BlockhashWithExpiryBlockHeight,
+  onProgress: MintProgress
+): Promise<SettledLike[]> {
+  const results: SettledLike[] = txs.map(() => ({ status: "fulfilled" }));
+  const sigs: (Uint8Array | null)[] = txs.map(() => null);
+
+  // Phase 1: throttled sends, SEND_CONCURRENCY at a time.
+  for (let i = 0; i < txs.length; i += SEND_CONCURRENCY) {
+    const batch = txs.slice(i, i + SEND_CONCURRENCY);
+    onProgress(
+      `Sending data chunks ${Math.min(i + batch.length, txs.length)}/${txs.length}...`
+    );
+    const settled = await Promise.allSettled(
+      batch.map((tx) =>
+        withRetry429(() =>
+          umi.rpc.sendTransaction(tx, { commitment: "confirmed" })
+        )
+      )
+    );
+    settled.forEach((r, j) => {
+      if (r.status === "fulfilled") sigs[i + j] = r.value;
+      else results[i + j] = { status: "rejected", reason: r.reason };
+    });
+    if (i + SEND_CONCURRENCY < txs.length) await sleep(BATCH_DELAY_MS);
+  }
+
+  // Phase 2: batched confirmation polling via getSignatureStatuses.
+  onProgress("Confirming data chunks...");
+  const pendingIdx = () =>
+    sigs
+      .map((s, i) => ({ s, i }))
+      .filter((x) => x.s !== null && results[x.i].status === "fulfilled")
+      .map((x) => x.i);
+
+  const confirmed = new Set<number>();
+  const deadline = Date.now() + 120_000;
+  while (true) {
+    const waiting = pendingIdx().filter((i) => !confirmed.has(i));
+    if (waiting.length === 0) break;
+    if (Date.now() > deadline) {
+      for (const i of waiting) {
+        results[i] = {
+          status: "rejected",
+          reason: new Error("confirmation timed out"),
+        };
+      }
+      break;
+    }
+    let statuses: any[];
+    try {
+      statuses = await withRetry429(() =>
+        umi.rpc.getSignatureStatuses(waiting.map((i) => sigs[i]!))
+      );
+    } catch (e) {
+      for (const i of waiting) results[i] = { status: "rejected", reason: e };
+      break;
+    }
+    let anyUnknown = false;
+    statuses.forEach((st, j) => {
+      const idx = waiting[j];
+      if (!st) {
+        anyUnknown = true;
+        return;
+      }
+      if (st.error) {
+        results[idx] = {
+          status: "rejected",
+          reason: new Error(`transaction failed: ${JSON.stringify(st.error)}`),
+        };
+        confirmed.add(idx);
+      } else if (
+        st.commitment === "confirmed" ||
+        st.commitment === "finalized"
+      ) {
+        confirmed.add(idx);
+      }
+    });
+    // Blockhash expiry: if sigs are still unknown past the blockhash
+    // validity window, fail them so the re-sign retry path kicks in.
+    if (anyUnknown) {
+      try {
+        const height = await withRetry429(() =>
+          getConnection().getBlockHeight("confirmed")
+        );
+        if (Number(height) > Number(blockhash.lastValidBlockHeight)) {
+          const still = pendingIdx().filter((i) => !confirmed.has(i));
+          for (const i of still) {
+            results[i] = {
+              status: "rejected",
+              reason: new Error("block height exceeded (blockhash expired)"),
+            };
+          }
+          break;
+        }
+      } catch {
+        // ignore, keep polling until deadline
+      }
+    }
+    const remaining = pendingIdx().filter((i) => !confirmed.has(i));
+    if (remaining.length === 0) break;
+    await sleep(STATUS_POLL_MS);
+  }
+
+  return results;
 }
 
 function errMsg(e: any): string {

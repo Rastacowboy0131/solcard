@@ -176,7 +176,14 @@ export default function Home() {
           `${e.message} (mint: ${e.mint}). You can retry the name claim later.`
         );
       } else {
-        setError(e.message || "mint failed");
+        const msg = String(e.message || "mint failed");
+        setError(
+          /429|rate limit/i.test(msg)
+            ? "devnet RPC kept rate limiting even after retries; wait a minute and try again (" +
+                msg +
+                ")"
+            : msg
+        );
       }
       setStatus("");
     } finally {
