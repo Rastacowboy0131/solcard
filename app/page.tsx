@@ -13,8 +13,7 @@ import {
   NAME_RE,
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
-import { mintCard, BG_FEE_SOL } from "../lib/inscribe";
-import { claimNameOnChain } from "../lib/claim";
+import { mintCard, BG_FEE_SOL, ClaimFailedError } from "../lib/inscribe";
 import { shortKey } from "../lib/registry";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
@@ -169,22 +168,16 @@ export default function Home() {
     setMinting(true);
     try {
       const res = await mintCard(wallet.adapter, card, avatar, setStatus, bg);
-      setStatus("Claiming name on-chain (0.15 SOL fee)...");
-      try {
-        await claimNameOnChain(wallet.adapter, card.name, res.mint);
-      } catch (e: any) {
-        const msg = String(e?.message || e);
-        if (msg.includes("already in use") || msg.includes("0x0")) {
-          throw new Error(
-            "name was claimed by someone else mid-mint (card minted, name not registered)"
-          );
-        }
-        throw new Error(`name claim failed (card minted though): ${msg}`);
-      }
       setStatus("");
       setResult({ mint: res.mint, name: card.name });
     } catch (e: any) {
-      setError(e.message || "mint failed");
+      if (e instanceof ClaimFailedError) {
+        setError(
+          `${e.message} (mint: ${e.mint}). You can retry the name claim later.`
+        );
+      } else {
+        setError(e.message || "mint failed");
+      }
       setStatus("");
     } finally {
       setMinting(false);
