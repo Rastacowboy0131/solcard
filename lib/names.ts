@@ -9,6 +9,7 @@ import {
   getConnection,
   fetchNameRecord,
   fetchNamesByOwner,
+  primeNameCache,
   OwnedName,
 } from "./registry";
 
@@ -38,7 +39,8 @@ export async function lookupName(name: string): Promise<NameEntry | null> {
   const key = name.toLowerCase();
   try {
     const rec = await fetchNameRecord(getConnection(), key);
-    if (rec)
+    if (rec) {
+      primeNameCache(key);
       return {
         mint: rec.mint,
         owner: rec.owner,
@@ -47,6 +49,7 @@ export async function lookupName(name: string): Promise<NameEntry | null> {
         listingState: rec.listingState,
         listingPrice: rec.listingPrice,
       };
+    }
   } catch {
     // RPC hiccup: fall through to json fallback
   }

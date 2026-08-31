@@ -230,21 +230,22 @@ export async function fetchListings(conn: Connection): Promise<Listing[]> {
       ],
     })
   );
-  const out: Listing[] = [];
-  for (const { pubkey, account } of accounts) {
-    const rec = decodeNameRecord(account.data);
-    if (!rec || rec.listingState !== 1) continue;
-    const name = await resolveNameFromHistory(conn, pubkey);
-    if (!name) continue;
-    out.push({
-      name,
-      owner: rec.owner,
-      mint: rec.mint,
-      priceLamports: rec.listingPrice,
-      ts: rec.ts,
-    });
-  }
-  return out;
+  const resolved = await Promise.all(
+    accounts.map(async ({ pubkey, account }) => {
+      const rec = decodeNameRecord(account.data);
+      if (!rec || rec.listingState !== 1) return null;
+      const name = await resolveNameCached(conn, pubkey);
+      if (!name) return null;
+      return {
+        name,
+        owner: rec.owner,
+        mint: rec.mint,
+        priceLamports: rec.listingPrice,
+        ts: rec.ts,
+      } as Listing;
+    })
+  );
+  return resolved.filter((x): x is Listing => x !== null);
 }
 
 export type OwnedName = {
@@ -271,22 +272,45 @@ export async function fetchNamesByOwner(
       ],
     })
   );
-  const out: OwnedName[] = [];
-  for (const { pubkey, account } of accounts) {
-    const rec = decodeNameRecord(account.data);
-    if (!rec) continue;
-    const name = await resolveNameFromHistory(conn, pubkey);
-    if (!name) continue;
-    out.push({
-      name,
-      owner: rec.owner,
-      mint: rec.mint,
-      ts: rec.ts,
-      listingState: rec.listingState,
-      listingPrice: rec.listingPrice,
-    });
-  }
-  return out;
+  const resolved = await Promise.all(
+    accounts.map(async ({ pubkey, account }) => {
+      const rec = decodeNameRecord(account.data);
+      if (!rec) return null;
+      const name = await resolveNameCached(conn, pubkey);
+      if (!name) return null;
+      return {
+        name,
+        owner: rec.owner,
+        mint: rec.mint,
+        ts: rec.ts,
+        listingState: rec.listingState,
+        listingPrice: rec.listingPrice,
+      } as OwnedName;
+    })
+  );
+  return resolved.filter((x): x is OwnedName => x !== null);
+}
+
+// The name behind a PDA never changes (it's derived from the seeds), so
+// once resolved it can be cached forever in-process. This is what makes
+// market / my-cards loads fast after the first hit.
+const pdaNameCache = new Map<string, string>();
+
+export function primeNameCache(name: string) {
+  const key = name.toLowerCase();
+  pdaNameCache.set(namePda(key).toBase58(), key);
+}
+
+async function resolveNameCached(
+  conn: Connection,
+  pda: PublicKey
+): Promise<string | null> {
+  const k = pda.toBase58();
+  const hit = pdaNameCache.get(k);
+  if (hit) return hit;
+  const name = await resolveNameFromHistory(conn, pda);
+  if (name) pdaNameCache.set(k, name);
+  return name;
 }
 
 // Walk the PDA's recent signatures, find a registry instruction whose data
