@@ -440,7 +440,7 @@ export default function Home() {
               <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="https://you.xyz" />
             </div>
             <div className="field">
-              <label>Pump.fun coin</label>
+              <label>Pump.fun</label>
               <input value={pump} onChange={(e) => setPump(e.target.value)} placeholder="https://pump.fun/..." />
             </div>
             <div className="field">
