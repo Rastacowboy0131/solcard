@@ -271,11 +271,8 @@ export default function Home() {
             bio="On-chain business cards. Inscribed on Solana, forever."
             avatarSrc="/logo.png"
             socials={[
-              { kind: "globe" },
-              { kind: "x" },
-              { kind: "discord" },
-              { kind: "medium" },
-              { kind: "github" },
+              { kind: "globe", href: "https://chaincard.fun/" },
+              { kind: "x", href: "https://x.com/Chaincardsol" },
             ]}
             address="7XK3mockmockmockQ9ZF"
             demoAvatar
