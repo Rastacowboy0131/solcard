@@ -114,6 +114,14 @@ export default function DocsPage() {
               your click and your transaction landing, the buy fails instead of
               charging you a different amount.
             </p>
+            <p>
+              <strong>Heads up:</strong> selling the card NFT on an external
+              marketplace (Magic Eden, OpenSea, etc.) does <strong>not</strong>{" "}
+              transfer the name. The name registry tracks its own owner, so a
+              buyer there gets the card artifact while the name keeps resolving
+              to you. Trade names here, through the marketplace, so the name
+              and card move together.
+            </p>
           </div>
 
           <div className="panel docs-panel" id="customization">
