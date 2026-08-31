@@ -141,8 +141,9 @@ export async function mintCard(
   const createBuilder = (createV1(umi, {
     mint,
     name: `Chaincard: ${card.name}`,
-    uri: "", // data lives in the inscription, not offchain json
-    sellerFeeBasisPoints: percentAmount(0),
+    // wallet-facing metadata (image + link) served by the site; the card
+    // data itself still lives fully on-chain in the inscription.
+    uri: `${SITE_URL}/api/nft/${mint.publicKey}`,    sellerFeeBasisPoints: percentAmount(0),
     tokenStandard: TokenStandard.NonFungible,
   }) as TransactionBuilder).add(
     mintV1(umi, {
