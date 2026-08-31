@@ -441,7 +441,7 @@ export default function Home() {
             </div>
             <div className="field">
               <label>Pump.fun coin</label>
-              <input value={pump} onChange={(e) => setPump(e.target.value)} placeholder="https://pump.fun/coin/..." />
+              <input value={pump} onChange={(e) => setPump(e.target.value)} placeholder="https://pump.fun/..." />
             </div>
             <div className="field">
               <label>FOMO</label>
