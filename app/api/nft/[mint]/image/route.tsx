@@ -1,11 +1,23 @@
 import { NextRequest } from "next/server";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { fetchCardByMint } from "../../../../../lib/chain";
 
 // Card image for the NFT metadata: a simple rendered business card so the
 // collectible looks like the actual chaincard in wallets.
+// Inscribed images are webp, which satori (the OG renderer) cannot decode,
+// so they are transcoded to png data-URIs first.
 
 export const dynamic = "force-dynamic";
+
+async function toPngDataUri(b64: string): Promise<string | null> {
+  try {
+    const png = await sharp(Buffer.from(b64, "base64")).png().toBuffer();
+    return `data:image/png;base64,${png.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(
   _req: NextRequest,
@@ -15,11 +27,9 @@ export async function GET(
   if (!data) {
     return new Response("not found", { status: 404 });
   }
-  const { card, avatarBase64, bgBase64, bgMime } = data;
-  const avatar = avatarBase64
-    ? `data:image/webp;base64,${avatarBase64}`
-    : null;
-  const bg = bgBase64 ? `data:${bgMime};base64,${bgBase64}` : null;
+  const { card, avatarBase64, bgBase64 } = data;
+  const avatar = avatarBase64 ? await toPngDataUri(avatarBase64) : null;
+  const bg = bgBase64 ? await toPngDataUri(bgBase64) : null;
 
   return new ImageResponse(
     (
@@ -32,7 +42,6 @@ export async function GET(
           justifyContent: "center",
           backgroundColor: "#0d0d10",
           position: "relative",
-          fontFamily: "monospace",
         }}
       >
         {bg && (
@@ -79,6 +88,7 @@ export async function GET(
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div
                 style={{
+                  display: "flex",
                   fontSize: 64,
                   color: "#39ff88",
                   fontWeight: 700,
@@ -87,7 +97,7 @@ export async function GET(
                 @{card.name}
               </div>
               {card.displayName && (
-                <div style={{ fontSize: 36, color: "#ffffff" }}>
+                <div style={{ display: "flex", fontSize: 36, color: "#ffffff" }}>
                   {card.displayName}
                 </div>
               )}
@@ -96,6 +106,7 @@ export async function GET(
           {card.bio && (
             <div
               style={{
+                display: "flex",
                 fontSize: 28,
                 color: "#c9c9d4",
                 marginTop: 28,
@@ -107,6 +118,7 @@ export async function GET(
           )}
           <div
             style={{
+              display: "flex",
               fontSize: 22,
               color: "#39ff88",
               marginTop: 30,
