@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { HeaderSearch } from "./HeaderSearch";
 
 const WalletMultiButton = dynamic(
   () =>
@@ -29,6 +30,7 @@ export function SiteHeader({ active = "home" }: { active?: string }) {
         <a href="/docs#about">About</a>
       </nav>
       <div className="header-spacer" />
+      <HeaderSearch />
       <div className="header-wallet">
         <WalletMultiButton>Connect Wallet</WalletMultiButton>
       </div>

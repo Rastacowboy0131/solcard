@@ -16,7 +16,6 @@ import { shortKey } from "../lib/registry";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
 import { MarqueeBar } from "./components/MarqueeBar";
-import { CardSearch } from "./components/CardSearch";
 import { BusinessCard } from "./components/BusinessCard";
 import type { BizSocial } from "./components/BusinessCard";
 import {
@@ -281,8 +280,6 @@ export default function Home() {
         </section>
 
         <MarqueeBar />
-
-        <CardSearch />
 
         <section className="wrap" id="builder">
           <h2 className="section-title">Build Your Card</h2>

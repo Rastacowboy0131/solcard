@@ -100,6 +100,42 @@ a { color: var(--ink); text-decoration: none; }
 }
 .site-nav a.active { background: var(--purple); color: var(--paper2); }
 .header-spacer { flex: 1; }
+.header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.header-search-input {
+  font-family: var(--font-mono), monospace;
+  font-size: 16px;
+  padding: 10px 14px;
+  border: 3px solid var(--ink);
+  background: var(--paper2, #fff);
+  width: 190px;
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.header-search-input:focus { outline: none; }
+.header-search-btn {
+  font-size: 16px;
+  padding: 10px 16px;
+  gap: 6px;
+}
+.header-search-msg {
+  position: absolute;
+  top: 100%;
+  left: 4px;
+  margin-top: 6px;
+  font-family: var(--font-mono), monospace;
+  font-size: 13px;
+  color: var(--ink);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .header-search { order: 4; width: 100%; }
+  .header-search-input { flex: 1; width: auto; }
+}
 
 /* Brutalist buttons */
 .brut-btn {
