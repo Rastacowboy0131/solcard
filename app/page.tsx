@@ -457,6 +457,13 @@ export default function Home() {
               Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
             </div>
 
+            <div className="muted" style={{ marginBottom: "1rem", fontSize: "0.85em" }}>
+              Note: your wallet may show a &quot;simulation failed&quot; preview warning.
+              This is expected: the mint is a chain of transactions signed together,
+              and the wallet previews later steps before earlier ones land. The mint
+              itself goes through fine.
+            </div>
+
             <button className="brut-btn" onClick={onMint} disabled={minting || !connected}>
               {minting ? "Minting..." : "✦ Mint card →"}
             </button>
