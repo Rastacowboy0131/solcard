@@ -437,7 +437,7 @@ async function sendAndConfirm(
   blockhash: BlockhashWithExpiryBlockHeight
 ) {
   const signature = await withRetry429(() =>
-    umi.rpc.sendTransaction(tx, { commitment: "confirmed" })
+    umi.rpc.sendTransaction(tx, { commitment: "confirmed", skipPreflight: true })
   );
   const res = await withRetry429(() =>
     umi.rpc.confirmTransaction(signature, {
@@ -478,7 +478,7 @@ async function sendBatchAndConfirm(
     const settled = await Promise.allSettled(
       batch.map((tx) =>
         withRetry429(() =>
-          umi.rpc.sendTransaction(tx, { commitment: "confirmed" })
+          umi.rpc.sendTransaction(tx, { commitment: "confirmed", skipPreflight: true })
         )
       )
     );
