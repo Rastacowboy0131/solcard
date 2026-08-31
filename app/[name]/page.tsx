@@ -20,8 +20,38 @@ export default async function CardPage({
   const entry = await lookupName(params.name);
   if (!entry) notFound();
 
-  const data = await fetchCardByMint(entry.mint);
-  if (!data) notFound();
+  const placeholderMint = entry.mint === "11111111111111111111111111111111";
+  const data = placeholderMint ? null : await fetchCardByMint(entry.mint);
+  if (!data) {
+    // name is registered but no card minted yet (reserved names)
+    return (
+      <>
+        <SiteHeader active="" />
+        <main className="wrap notfound-wrap">
+          <h1 className="section-title display">chaincard/{params.name.toLowerCase()}</h1>
+          <p className="section-sub">
+            This name is claimed and secured on-chain. The card hasn&apos;t been
+            published yet.
+          </p>
+          <p className="chain-note">
+            Owner:{" "}
+            <a href={`https://explorer.solana.com/address/${entry.owner}`}>
+              {shortKey(entry.owner)}
+            </a>
+          </p>
+          {entry.onChain && entry.listingState === 1 && (
+            <MarketPanel
+              name={params.name.toLowerCase()}
+              owner={entry.owner}
+              listingState={entry.listingState}
+              listingPrice={entry.listingPrice}
+            />
+          )}
+        </main>
+        <MarqueeBar />
+      </>
+    );
+  }
 
   const { card, avatarBase64, bgBase64, bgMime, mint, inscription } = data;
   const bgSrc = bgBase64 ? `data:${bgMime};base64,${bgBase64}` : undefined;
