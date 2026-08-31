@@ -54,7 +54,7 @@ function sleep(ms: number) {
 export function friendlyRpcError(e: any, label: string): string {
   if (is429(e)) {
     return (
-      `${label} failed: the devnet RPC kept rate limiting us even after ` +
+      `${label} failed: the RPC kept rate limiting us even after ` +
       "several retries. Wait a minute and try again."
     );
   }

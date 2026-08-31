@@ -19,6 +19,8 @@ export type CardLinks = {
   x?: string;
   telegram?: string;
   site?: string;
+  pump?: string; // pump.fun coin link
+  fomo?: string; // fomo link
   wallets?: string[]; // extra addresses to display
 };
 
@@ -57,8 +59,8 @@ export function validateCard(card: SolCard): string | null {
         return `${k} color must be a #rrggbb hex value`;
     }
   }
-  const { x, telegram, site, wallets } = card.links ?? {};
-  for (const [k, v] of Object.entries({ x, telegram, site })) {
+  const { x, telegram, site, pump, fomo, wallets } = card.links ?? {};
+  for (const [k, v] of Object.entries({ x, telegram, site, pump, fomo })) {
     if (v && v.length > 200) return `${k} link too long`;
   }
   if (wallets && (wallets.length > 5 || wallets.some((w) => w.length > 50)))

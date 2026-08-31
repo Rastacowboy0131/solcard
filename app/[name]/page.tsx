@@ -61,6 +61,8 @@ export default async function CardPage({
   if (card.links?.x) socials.push({ kind: "x", href: card.links.x });
   if (card.links?.telegram)
     socials.push({ kind: "telegram", href: card.links.telegram });
+  if (card.links?.pump) socials.push({ kind: "pump", href: card.links.pump });
+  if (card.links?.fomo) socials.push({ kind: "fomo", href: card.links.fomo });
 
   const bio = card.bio
     ? `${card.displayName}. ${card.bio}`
@@ -106,7 +108,7 @@ export default async function CardPage({
           Owner:{" "}
           {entry.onChain ? (
             <a
-              href={`https://explorer.solana.com/address/${entry.owner}?cluster=devnet`}
+              href={`https://explorer.solana.com/address/${entry.owner}`}
             >
               {shortKey(entry.owner)}
             </a>
@@ -115,14 +117,14 @@ export default async function CardPage({
           )}
         </p>
         <p className="chain-note">
-          Read live from Solana devnet.{" "}
+          Read live from Solana.{" "}
           <a
-            href={`https://explorer.solana.com/address/${inscription}?cluster=devnet`}
+            href={`https://explorer.solana.com/address/${inscription}`}
           >
             inscription
           </a>{" "}
           ·{" "}
-          <a href={`https://explorer.solana.com/address/${mint}?cluster=devnet`}>
+          <a href={`https://explorer.solana.com/address/${mint}`}>
             mint
           </a>
         </p>

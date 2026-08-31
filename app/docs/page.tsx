@@ -80,13 +80,13 @@ export default function DocsPage() {
               The name record stores the owner wallet and the mint of the
               inscribed card. Look up either address on{" "}
               <a
-                href={`https://solscan.io/account/${PROGRAM_ID}?cluster=devnet`}
+                href={`https://solscan.io/account/${PROGRAM_ID}`}
                 target="_blank"
                 rel="noreferrer"
               >
                 solscan
               </a>{" "}
-              (devnet for now) and you can confirm ownership and read the card
+              (Solana mainnet) and you can confirm ownership and read the card
               data with zero help from us.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function DocsPage() {
               paid.
             </p>
             <p>
-              Currently on devnet. Program id:{" "}
+              Live on Solana mainnet. Program id:{" "}
               <code className="docs-break">{PROGRAM_ID}</code>
             </p>
             <p>

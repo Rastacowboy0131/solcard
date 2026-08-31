@@ -101,6 +101,27 @@ export function TelegramIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+export function PumpIcon({ size = 20 }: { size?: number }) {
+  // pump.fun style capsule/pill, split diagonally
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <g transform="rotate(45 12 12)">
+        <rect x="8" y="2" width="8" height="20" rx="4" fill="currentColor" opacity="0.35" />
+        <path d="M8 6a4 4 0 0 1 8 0v6H8V6z" fill="currentColor" />
+      </g>
+    </svg>
+  );
+}
+
+export function FomoIcon({ size = 20 }: { size?: number }) {
+  // flame mark
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2c.6 3.2-.8 5-2.4 6.7C7.8 10.6 6 12.5 6 15.5A6 6 0 0 0 12 21.5a6 6 0 0 0 6-6c0-2.6-1.3-4.4-2.6-6C13.9 7.7 12.5 5.6 12 2zm.2 16.9a2.6 2.6 0 0 1-2.6-2.6c0-1.3.8-2.1 1.6-3 .6-.7 1.2-1.4 1.5-2.4.9 1.4 2.1 2.9 2.1 4.9a2.6 2.6 0 0 1-2.6 3.1z" />
+    </svg>
+  );
+}
+
 export function SolanaMark({ className = "" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 20" width="22" height="18">

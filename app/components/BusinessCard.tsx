@@ -9,6 +9,8 @@ import {
   GitHubIcon,
   CopyIcon,
   TelegramIcon,
+  PumpIcon,
+  FomoIcon,
   SolanaMark,
   PixelApe,
 } from "./icons";
@@ -18,7 +20,7 @@ import { themeVars, getTheme, isPremium } from "../../lib/themes";
 import type { CardColors } from "../../lib/card";
 
 export type BizSocial = {
-  kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram";
+  kind: "globe" | "x" | "discord" | "dots" | "medium" | "github" | "telegram" | "pump" | "fomo";
   href?: string;
 };
 
@@ -30,6 +32,8 @@ const SOCIAL_ICONS: Record<BizSocial["kind"], (s: number) => JSX.Element> = {
   medium: (s) => <MediumIcon size={s} />,
   github: (s) => <GitHubIcon size={s} />,
   telegram: (s) => <TelegramIcon size={s} />,
+  pump: (s) => <PumpIcon size={s} />,
+  fomo: (s) => <FomoIcon size={s} />,
 };
 
 export function BusinessCard({

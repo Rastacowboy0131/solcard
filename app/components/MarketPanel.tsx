@@ -65,7 +65,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
     setBusy(true);
     setError("");
     setSuccess(null);
-    setStatus(`${label}: confirm in wallet, then waiting for devnet...`);
+    setStatus(`${label}: confirm in wallet, then waiting for Solana...`);
     try {
       const { signature } = await fn((msg) => setStatus(msg));
       setStatus("");
@@ -189,7 +189,7 @@ export function MarketPanel({ name, owner, listingState, listingPrice }: Props) 
         <div className="success">
           {success.msg}.{" "}
           <a
-            href={`https://explorer.solana.com/tx/${success.sig}?cluster=devnet`}
+            href={`https://explorer.solana.com/tx/${success.sig}`}
             target="_blank"
             rel="noreferrer"
           >

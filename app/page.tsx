@@ -34,6 +34,8 @@ export default function Home() {
   const [bio, setBio] = useState("");
   const [x, setX] = useState("");
   const [telegram, setTelegram] = useState("");
+  const [pump, setPump] = useState("");
+  const [fomo, setFomo] = useState("");
   const [site, setSite] = useState("");
   const [wallets, setWallets] = useState("");
   const [theme, setTheme] = useState(DEFAULT_THEME_ID);
@@ -90,6 +92,8 @@ export default function Home() {
     links: {
       ...(x.trim() ? { x: x.trim() } : {}),
       ...(telegram.trim() ? { telegram: telegram.trim() } : {}),
+      ...(pump.trim() ? { pump: pump.trim() } : {}),
+      ...(fomo.trim() ? { fomo: fomo.trim() } : {}),
       ...(site.trim() ? { site: site.trim() } : {}),
       ...(wallets.trim()
         ? { wallets: wallets.split(",").map((w) => w.trim()).filter(Boolean) }
@@ -198,7 +202,7 @@ export default function Home() {
         const msg = String(e.message || "mint failed");
         setError(
           /429|rate limit/i.test(msg)
-            ? "devnet RPC kept rate limiting even after retries; wait a minute and try again (" +
+            ? "RPC kept rate limiting even after retries; wait a minute and try again (" +
                 msg +
                 ")"
             : msg
@@ -214,6 +218,8 @@ export default function Home() {
   if (site.trim()) previewSocials.push({ kind: "globe" });
   if (x.trim()) previewSocials.push({ kind: "x" });
   if (telegram.trim()) previewSocials.push({ kind: "telegram" });
+  if (pump.trim()) previewSocials.push({ kind: "pump" });
+  if (fomo.trim()) previewSocials.push({ kind: "fomo" });
   if (previewSocials.length === 0)
     previewSocials.push({ kind: "globe" }, { kind: "x" }, { kind: "discord" });
 
@@ -284,7 +290,7 @@ export default function Home() {
         <section className="wrap" id="builder">
           <h2 className="section-title">Build Your Card</h2>
           <p className="section-sub">
-            Inscribed on Solana devnet. Forever. (v1)
+            Inscribed on Solana. Forever. (v1)
           </p>
 
           <div className="builder-grid">
@@ -434,6 +440,14 @@ export default function Home() {
               <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="https://you.xyz" />
             </div>
             <div className="field">
+              <label>Pump.fun coin</label>
+              <input value={pump} onChange={(e) => setPump(e.target.value)} placeholder="https://pump.fun/coin/..." />
+            </div>
+            <div className="field">
+              <label>FOMO</label>
+              <input value={fomo} onChange={(e) => setFomo(e.target.value)} placeholder="https://fomo.fun/..." />
+            </div>
+            <div className="field">
               <label>Wallets to display (comma separated, max 5)</label>
               <input value={wallets} onChange={(e) => setWallets(e.target.value)} placeholder="addr1, addr2" />
             </div>
@@ -444,7 +458,7 @@ export default function Home() {
             </div>
 
             <button className="brut-btn" onClick={onMint} disabled={minting || !connected}>
-              {minting ? "Minting..." : "✦ Mint card on devnet →"}
+              {minting ? "Minting..." : "✦ Mint card →"}
             </button>
 
             {status && <div className="muted" style={{ marginTop: "0.5rem" }}>{status}</div>}
