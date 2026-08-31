@@ -50,7 +50,7 @@ import { claimIx, updateMintIx, fetchConfig, getConnection } from "./registry";
 import type { SolCard } from "./card";
 
 const RPC_URL =
-  process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
+  process.env.SERVER_RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 const FEE_WALLET = process.env.NEXT_PUBLIC_FEE_WALLET || "";
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://solcard-74l3.onrender.com"

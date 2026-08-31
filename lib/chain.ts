@@ -14,7 +14,7 @@ import { publicKey } from "@metaplex-foundation/umi";
 import type { SolCard } from "./card";
 
 const RPC_URL =
-  process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
+  process.env.SERVER_RPC_URL || process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 const AVATAR_TAG = "avatar";
 const BG_TAG = "bg";
 
