@@ -973,3 +973,8 @@ html, body { overflow-x: clip; }
   .card-search-hit { flex-direction: column; gap: 4px; }
 }
 .card-search-input { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* branded 404 */
+.notfound-wrap { text-align: center; padding: 90px 20px 120px; }
+.notfound-actions { display: flex; gap: 18px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
+.notfound-secondary { background: var(--purple); color: var(--paper2); }
