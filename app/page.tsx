@@ -278,8 +278,9 @@ export default function Home() {
             socials={[
               { kind: "globe", href: "https://chaincard.fun/" },
               { kind: "x", href: "https://x.com/Chaincardsol" },
+              { kind: "pump", href: "https://pump.fun/coin/ByBLSc8GQa3MqjYF2KgXuMBMtRs5rWYaXFGwppZupump" },
             ]}
-            address="7XK3mockmockmockQ9ZF"
+            address="ByBLSc8GQa3MqjYF2KgXuMBMtRs5rWYaXFGwppZupump"
             demoAvatar
             theme={theme}
           />
