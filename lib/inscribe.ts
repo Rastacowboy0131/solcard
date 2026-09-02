@@ -117,6 +117,38 @@ export async function mintCard(
   if (!cfg) throw new Error("registry config not found on this cluster");
   if (!wallet.publicKey) throw new Error("wallet not connected");
 
+  // ---- Upfront cost estimate + balance check ----
+  // Rent exemption approx: (size + 128 account overhead) * 3480 lamports/byte-year * 2 years.
+  const rentFor = (size: number) => (size + 128) * 3480 * 2;
+  const fmtSol = (l: number) => (l / 1e9).toFixed(3);
+  const mintFeeSol = repoint ? 0 : FEE_SOL + (bg ? BG_FEE_SOL : 0);
+  const estChunks =
+    Math.ceil(jsonBytes.length / CHUNK) +
+    Math.ceil(avatar.bytes.length / CHUNK) +
+    (bg ? Math.ceil(bg.bytes.length / CHUNK) : 0);
+  const needLamports =
+    Math.round(mintFeeSol * 1e9) +
+    rentFor(jsonBytes.length) + // card json inscription
+    rentFor(avatar.bytes.length) + // avatar inscription
+    (bg ? rentFor(bg.bytes.length) : 0) + // background inscription
+    rentFor(600) + // inscription metadata accounts
+    23_000_000 + // NFT mint/metadata/edition/token accounts
+    (estChunks + 8) * 5_000 + // per-tx network fees
+    2_000_000; // safety buffer
+  const payerPk = new PublicKey(wallet.publicKey.toBase58());
+  const balanceLamports = await sharedWithRetry429(
+    () => conn.getBalance(payerPk),
+    (msg) => onProgress(msg)
+  );
+  if (balanceLamports < needLamports) {
+    throw new Error(
+      `Not enough SOL to mint: this card needs about ${fmtSol(needLamports)} SOL ` +
+        `(${mintFeeSol} SOL mint fee + on-chain storage rent + network fees), but your ` +
+        `wallet has ${fmtSol(balanceLamports)} SOL. Add at least ` +
+        `${fmtSol(needLamports - balanceLamports)} SOL and try again.`
+    );
+  }
+
   const mint = generateSigner(umi);
   const inscriptionAccount = findMintInscriptionPda(umi, {
     mint: mint.publicKey,
@@ -293,8 +325,16 @@ export async function mintCard(
     try {
       await sendAndConfirm(umi, signedSetup[i], blockhash);
     } catch (e: any) {
+      const raw = errMsg(e);
+      // System program error 1 inside these setup txs = not enough lamports
+      // for the rent/fee transfers. Say that plainly instead of the raw code.
+      const friendly = /"Custom":1\}|insufficient (funds|lamports)/i.test(raw)
+        ? `not enough SOL in the wallet to cover this step. Minting this card ` +
+          `needs about ${fmtSol(needLamports)} SOL total (mint fee + on-chain ` +
+          `storage rent + network fees); top up and try again. (${raw})`
+        : raw;
       throw new Error(
-        `mint failed at stage "${stageNames[i]}": ${errMsg(e)}` +
+        `mint failed at stage "${stageNames[i]}": ${friendly}` +
           (i > 0
             ? " (mint may be partially complete; funds for later steps were not spent)"
             : "")
