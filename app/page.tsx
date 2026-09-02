@@ -11,7 +11,7 @@ import {
   NAME_RE,
 } from "../lib/card";
 import { compressAvatar, compressBg } from "../lib/compress";
-import { mintCard, BG_FEE_SOL, ClaimFailedError } from "../lib/inscribe";
+import { mintCard, BG_FEE_SOL, ClaimFailedError, estimateMintLamports, fmtSol } from "../lib/inscribe";
 import { shortKey } from "../lib/registry";
 import { THEMES, THEME_IDS, DEFAULT_THEME_ID } from "../lib/themes";
 import { SiteHeader } from "./components/SiteHeader";
@@ -116,6 +116,14 @@ export default function Home() {
   const jsonSize = new TextEncoder().encode(JSON.stringify(buildCard())).length;
   const totalSize =
     jsonSize + (avatar?.bytes.length ?? 0) + (bg?.bytes.length ?? 0);
+
+  const estCostSol = fmtSol(
+    estimateMintLamports({
+      jsonBytes: jsonSize,
+      avatarBytes: avatar?.bytes.length ?? 0,
+      bgBytes: bg?.bytes.length ?? 0,
+    })
+  );
 
   const onFile = useCallback(async (f: File | undefined) => {
     setError("");
@@ -455,7 +463,7 @@ export default function Home() {
 
             <div className="muted" style={{ marginBottom: "1rem" }}>
               Payload: {totalSize.toLocaleString()} / {totalCap.toLocaleString()} bytes.
-              Mint fee: {process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} SOL + inscription rent.
+              Estimated cost: ~{estCostSol} SOL ({process.env.NEXT_PUBLIC_FEE_SOL || "0.15"} mint fee + inscription rent + network fees).
             </div>
 
             <div className="muted" style={{ marginBottom: "1rem", fontSize: "0.85em" }}>

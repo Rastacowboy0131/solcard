@@ -68,6 +68,36 @@ const BG_TAG = "bg";
 
 export type MintProgress = (msg: string) => void;
 
+// ---- Mint cost estimate (shared by the UI line and the pre-mint check) ----
+// Rent exemption approx: (size + 128 account overhead) * 3480 lamports/byte-year * 2 years.
+const rentFor = (size: number) => (size + 128) * 3480 * 2;
+export const fmtSol = (lamports: number) => (lamports / 1e9).toFixed(3);
+
+/** Estimated total lamports a mint will cost for the given payload sizes. */
+export function estimateMintLamports(opts: {
+  jsonBytes: number;
+  avatarBytes: number;
+  bgBytes?: number;
+  repoint?: boolean;
+}): number {
+  const { jsonBytes, avatarBytes, bgBytes = 0, repoint = false } = opts;
+  const mintFeeSol = repoint ? 0 : FEE_SOL + (bgBytes > 0 ? BG_FEE_SOL : 0);
+  const estChunks =
+    Math.ceil(jsonBytes / CHUNK) +
+    Math.ceil(avatarBytes / CHUNK) +
+    (bgBytes > 0 ? Math.ceil(bgBytes / CHUNK) : 0);
+  return (
+    Math.round(mintFeeSol * 1e9) +
+    rentFor(jsonBytes) + // card json inscription
+    rentFor(avatarBytes) + // avatar inscription
+    (bgBytes > 0 ? rentFor(bgBytes) : 0) + // background inscription
+    rentFor(600) + // inscription metadata accounts
+    23_000_000 + // NFT mint/metadata/edition/token accounts
+    (estChunks + 8) * 5_000 + // per-tx network fees
+    2_000_000 // safety buffer
+  );
+}
+
 /** Error thrown when the card minted fine but the name claim failed. */
 export class ClaimFailedError extends Error {
   constructor(msg: string, public readonly mint: string) {
@@ -118,23 +148,13 @@ export async function mintCard(
   if (!wallet.publicKey) throw new Error("wallet not connected");
 
   // ---- Upfront cost estimate + balance check ----
-  // Rent exemption approx: (size + 128 account overhead) * 3480 lamports/byte-year * 2 years.
-  const rentFor = (size: number) => (size + 128) * 3480 * 2;
-  const fmtSol = (l: number) => (l / 1e9).toFixed(3);
   const mintFeeSol = repoint ? 0 : FEE_SOL + (bg ? BG_FEE_SOL : 0);
-  const estChunks =
-    Math.ceil(jsonBytes.length / CHUNK) +
-    Math.ceil(avatar.bytes.length / CHUNK) +
-    (bg ? Math.ceil(bg.bytes.length / CHUNK) : 0);
-  const needLamports =
-    Math.round(mintFeeSol * 1e9) +
-    rentFor(jsonBytes.length) + // card json inscription
-    rentFor(avatar.bytes.length) + // avatar inscription
-    (bg ? rentFor(bg.bytes.length) : 0) + // background inscription
-    rentFor(600) + // inscription metadata accounts
-    23_000_000 + // NFT mint/metadata/edition/token accounts
-    (estChunks + 8) * 5_000 + // per-tx network fees
-    2_000_000; // safety buffer
+  const needLamports = estimateMintLamports({
+    jsonBytes: jsonBytes.length,
+    avatarBytes: avatar.bytes.length,
+    bgBytes: bg?.bytes.length ?? 0,
+    repoint,
+  });
   const payerPk = new PublicKey(wallet.publicKey.toBase58());
   const balanceLamports = await sharedWithRetry429(
     () => conn.getBalance(payerPk),
