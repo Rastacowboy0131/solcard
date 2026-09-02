@@ -58,7 +58,7 @@ export default function MarketPage() {
       <main className="wrap market-page">
         <h1 className="section-title">Marketplace</h1>
         <p className="section-sub">
-          Names listed for sale on-chain. 2.5% fee on every sale. Devnet.
+          Names listed for sale on-chain. 2.5% fee on every sale.
         </p>
 
         <div className="market-sort-row">
