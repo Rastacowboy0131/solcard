@@ -12,6 +12,23 @@ import { themeVars } from "../../lib/themes";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: { name: string };
+}) {
+  const name = params.name.toLowerCase();
+  return {
+    title: `${name} | Chaincard`,
+    description: `chaincard/${name}: an on-chain business card on Solana, inscribed forever.`,
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} | Chaincard`,
+      description: `chaincard/${name}: an on-chain business card on Solana.`,
+    },
+  };
+}
+
 export default async function CardPage({
   params,
 }: {

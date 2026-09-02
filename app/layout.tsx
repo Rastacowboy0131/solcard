@@ -16,6 +16,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://chaincard.fun"),
   title: "Chaincard",
   description: "On-chain business cards on Solana, inscribed forever.",
 };
